@@ -166,9 +166,9 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ## Contact
 
-- **GitHub**: [github.com/velvet-ai/velvet-ai-core](https://github.com/velvet-ai/velvet-ai-core)
-- **Issues**: [github.com/velvet-ai/velvet-ai-core/issues](https://github.com/velvet-ai/velvet-ai-core/issues)
-- **Discussions**: [github.com/velvet-ai/velvet-ai-core/discussions](https://github.com/velvet-ai/velvet-ai-core/discussions)
+- **GitHub**: [github.com/Velvet-ecosystem/velvet-ai-core](https://github.com/Velvet-ecosytem/velvet-ai-core)
+- **Issues**: [github.com/Velvet-ecosystem/velvet-ai-core/issues](https://github.com/Velvet-ecosystem/velvet-ai-core/issues)
+- **Discussions**: [github.com/Velvet-ecosystem/velvet-ai-core/discussions](https://github.com/Velvet-ecosystem/velvet-ai-core/discussions)
 
 ---
 
