@@ -86,7 +86,7 @@ velvet-ai-core/
 │   └── modules/           # Base for pluggable modules
 ├── docs/                  # Architecture documentation
 ├── tests/                 # Test suite
-└── LICENSE                # AGPLv3
+└── LICENSE                # GPLv3
 ```
 
 ---
