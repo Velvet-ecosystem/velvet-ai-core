@@ -142,11 +142,11 @@ This project follows PEP 8 conventions and uses type hints where applicable.
 
 ## License
 
-This project is licensed under the **GNU Affero General Public License v3.0** (AGPLv3).
+This project is licensed under the **GNU General Public License v3.0** (GPLv3).
 
 See [LICENSE](LICENSE) for full terms.
 
-**TL;DR:** You are free to use, modify, and distribute this software, but any modifications or network-accessible services using this code must also be open-sourced under AGPLv3.
+**TL;DR:** You are free to use, modify, and distribute this software, but any modifications or network-accessible services using this code must also be open-sourced under GPLv3.
 
 ---
 
