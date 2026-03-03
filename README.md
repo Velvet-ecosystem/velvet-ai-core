@@ -1,5 +1,7 @@
 # Velvet AI Core
 
+**PLEASE BE PATIENT, THIS PROJECT IS UNDER ACTIVE DEVELOPMENT**
+
 **Offline-first, modular AI runtime for automotive and embedded systems.**
 
 Velvet AI Core is a lightweight, event-driven runtime designed for resource-constrained environments where cloud connectivity cannot be assumed. It provides a pluggable module system, structured logging, and configurable persistence—all with zero external dependencies.
