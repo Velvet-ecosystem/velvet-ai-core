@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "velvet-ai-core"
+version = "0.1.0"
+description = "Offline-first car-native AI core for Automotive Grade Linux"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Velvet AI", email = "noreply@velvet.ai" }
+]
+requires-python = ">=3.8"
+
+# Keep this minimal for now; Yocto can still manage runtime deps,
+# but this helps normal pip installs and sanity tests.
+dependencies = []
+
+[tool.setuptools]
+packages = [
+    "velvet",
+    "velvet.core",
+    "velvet.core.modules",
+    "velvet.core.schemas",
+    "velvet.core.interfaces",
+    "velvet.modules"
+]
+include-package-data = true
