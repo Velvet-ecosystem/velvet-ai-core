@@ -33,6 +33,30 @@ All modules extend the `VelvetModule` base class and implement standard lifecycl
 
 ---
 
+## Interface and Identity Doctrine
+
+Velvet is not a menu-first dashboard skin.
+
+Velvet uses a scene-based room-body interface model where visual spaces, objects, and protected paths route user intent into a strict authorization pipeline. Scenes may be expressive, contextual, and body-aware, but they do not bypass security.
+
+Important docs:
+
+- [Scene Doctrine](docs/scene_doctrine.md)
+- [Room-Body Interface](docs/room_body_interface.md)
+- [Naming and Binding](docs/naming_and_binding.md)
+- [Retrofit Body Registry](docs/retrofit_body_registry.md)
+- [Boot Identity Sequence](docs/boot_identity_sequence.md)
+
+Core rule:
+
+    Scenes express.
+    Policies authorize.
+    Gates enforce.
+    Executors act.
+    Receipts remember.
+
+---
+
 ## Quick Start
 
 ### Installation
