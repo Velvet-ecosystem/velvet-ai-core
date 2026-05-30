@@ -33,7 +33,7 @@ All modules extend the `VelvetModule` base class and implement standard lifecycl
 
 ---
 
-## Interface and Identity Doctrine
+## Interface, Identity, and Boundary Doctrine
 
 Velvet is not a menu-first dashboard skin.
 
@@ -46,8 +46,12 @@ Important docs:
 - [Naming and Binding](docs/naming_and_binding.md)
 - [Retrofit Body Registry](docs/retrofit_body_registry.md)
 - [Boot Identity Sequence](docs/boot_identity_sequence.md)
+- [AI Collaborator Boundaries](docs/ai_collaborator_boundaries.md)
 
 Core rule:
+
+Scenes route intent. Gates authorize action. Executors touch hardware. Receipts prove what happened.
+
 
     Scenes express.
     Policies authorize.
