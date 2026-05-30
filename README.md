@@ -131,6 +131,8 @@ velvet-ai-core/
 
 Full documentation available in the `docs/` directory.
 
+Note: `Boot Sequence` describes runtime startup behavior. `Boot Identity Sequence` describes Velvet’s identity re-entry, body verification, policy loading, and continuity checks during wake.
+
 ---
 
 ## Hardware Modules
