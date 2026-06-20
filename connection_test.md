@@ -1,0 +1,1 @@
+Organization write connection confirmed.
