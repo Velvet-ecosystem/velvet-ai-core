@@ -2,215 +2,176 @@
 
 **PLEASE BE PATIENT, THIS PROJECT IS UNDER ACTIVE DEVELOPMENT**
 
-**Offline-first, modular AI runtime for automotive and embedded systems.**
+**Offline-first doctrine, proposal models, identity concepts, and shared abstractions for the Velvet ecosystem.**
 
-Velvet AI Core is a lightweight, event-driven runtime designed for resource-constrained environments where cloud connectivity cannot be assumed. It provides a pluggable module system, structured logging, and configurable persistence—all with zero external dependencies.
+Velvet AI Core defines the concepts and brain-facing structures that let Velvet reason, remember, recognize context, describe intent, and participate in the wider ecosystem without directly controlling hardware.
 
----
+It is not the authoritative boot or execution runtime.
 
-## Features
+> Core proposes and models. Runtime verifies and authorizes. Executors act. Receipts remember.
 
-- **Offline-First Architecture**: No cloud dependency; all operations local
-- **Event-Driven**: Pub/sub event bus for inter-module communication
-- **Hot-Swappable Modules**: Dynamic loading and unloading of feature modules
-- **Health Monitoring**: Built-in heartbeat and health status tracking
-- **Failure Recovery**: Automatic rollback on module initialization failures
-- **Automotive Grade Linux (AGL) Ready**: Designed for Yocto/AGL integration
-- **Zero External Dependencies**: Pure Python 3.8+ with stdlib only
+## Responsibility Boundary
 
----
+Velvet AI Core owns:
 
-## Architecture
+- doctrine and architecture concepts
+- proposal-facing models
+- identity, naming, body, and profile concepts
+- memory and conversational abstractions
+- module base classes and shared interfaces
+- schemas that describe events, requests, and state
+- offline-first reasoning support
 
-Velvet Core is built on four key primitives:
+`velvet-runtime` owns:
 
-1. **Runtime** — Lifecycle orchestrator (boot, run, shutdown)
-2. **Module Loader** — Dynamic module registration and management
-3. **Event Bus** — Asynchronous event pub/sub for module communication
-4. **Command Bus** — JSONL-based command ingestion for external control
+- normal boot and recovery boot
+- continuity verification
+- active body, profile, and session binding
+- capability-context loading
+- Court authorization
+- signed capability tokens
+- safety-gate selection
+- approved executor registration
+- replay protection
+- execution receipts
+- the sole path to physical or write-capable action
 
-All modules extend the `VelvetModule` base class and implement standard lifecycle hooks (`start()`, `stop()`).
+Core code must never become a second authority lane around Runtime.
 
----
+## Execution Doctrine
 
-## Interface, Identity, and Boundary Doctrine
+```text
+brain or module proposes
+  -> public route or strict intent
+  -> verified Runtime identity context
+  -> capability policy
+  -> Court authorization
+  -> signed capability token
+  -> matching safety gate
+  -> approved executor
+  -> receipts
+```
+
+The offline language model, personality layer, memory system, and handmaidens may propose, explain, converse, and remember. They must never directly control:
+
+- shell commands
+- arbitrary files
+- relays
+- CAN writers
+- actuators
+- steering
+- throttle
+- braking
+- other hardware
+
+## Command and Request Boundary
+
+Any legacy command-bus or JSONL ingestion concept in Core is descriptive or developmental only. It must not be treated as an execution channel.
+
+External and interface-originated requests must enter Runtime through the narrow local intent gateway using only:
+
+```text
+intent_id
+route_id
+route-approved parameters
+```
+
+Clients do not select executor names, raw capabilities, hardware targets, shell commands, module paths, or Python callables.
+
+See:
+
+- [Core and Runtime Responsibility Boundary](docs/core_runtime_responsibility_boundary.md)
+- [Naming and Binding](docs/naming_and_binding.md)
+- [Retrofit Body Registry](docs/retrofit_body_registry.md)
+- [Boot Identity Sequence](docs/boot_identity_sequence.md)
+- [AI Collaborator Boundaries](docs/ai_collaborator_boundaries.md)
+
+## Interface and Scene Doctrine
 
 Velvet is not a menu-first dashboard skin.
 
-Velvet uses a scene-based room-body interface model where visual spaces, objects, and protected paths route user intent into a strict authorization pipeline. Scenes may be expressive, contextual, and body-aware, but they do not bypass security.
+Velvet uses a scene-based room-body interface model where visual spaces, objects, and protected paths express context and route user intent. Scenes may be expressive, contextual, hidden, and body-aware, but they do not actuate hardware.
 
-Important docs:
+```text
+Scenes express.
+Core proposes.
+Runtime authorizes.
+Gates enforce.
+Executors act.
+Receipts remember.
+```
+
+Important documents:
 
 - [Scene Doctrine](docs/scene_doctrine.md)
 - [Room-Body Interface](docs/room_body_interface.md)
 - [Naming and Binding](docs/naming_and_binding.md)
 - [Retrofit Body Registry](docs/retrofit_body_registry.md)
 - [Boot Identity Sequence](docs/boot_identity_sequence.md)
-- [AI Collaborator Boundaries](docs/ai_collaborator_boundaries.md)
 
-Core rule:
+## Current Status
 
-Scenes route intent. Gates authorize action. Executors touch hardware. Receipts prove what happened.
+Core remains an alpha-stage shared foundation.
 
+Some earlier code and documentation may still use the word “runtime” for local development orchestration. That does not supersede the ecosystem boundary established here. Authoritative secure boot and execution live in `velvet-runtime`.
 
-    Scenes express.
-    Policies authorize.
-    Gates enforce.
-    Executors act.
-    Receipts remember.
-
----
-
-## Quick Start
-
-### Installation
-
-```bash
-pip install velvet-ai-core
-```
-
-### Basic Usage
-
-```python
-from velvet.core import VelvetRuntime
-
-# Create and start the runtime
-runtime = VelvetRuntime()
-runtime.start()
-
-# Runtime will run until stopped
-# Ctrl+C or SIGTERM will trigger graceful shutdown
-```
-
-### Creating a Custom Module
-
-```python
-from velvet.core.velvet_module import VelvetModule
-
-class MyModule(VelvetModule):
-    def __init__(self):
-        super().__init__(name="my_module")
-    
-    def start(self):
-        self.log("MyModule started")
-    
-    def stop(self):
-        self.log("MyModule stopped")
-```
-
-See `docs/` for full module development guide.
-
----
+Current physical authority in Core: **none**.
 
 ## Project Structure
 
-```
+```text
 velvet-ai-core/
 ├── velvet/
-│   ├── core/              # Core runtime components
-│   │   ├── runtime.py     # Main runtime orchestrator
-│   │   ├── module_loader.py
-│   │   ├── modules/       # Built-in modules
-│   │   ├── schemas/       # Event/command schemas
-│   │   └── interfaces/    # Abstract interfaces
-│   └── modules/           # Base for pluggable modules
-├── docs/                  # Architecture documentation
-├── tests/                 # Test suite
+│   ├── core/              # shared lifecycle and proposal abstractions
+│   ├── modules/           # module base classes and local abstractions
+│   ├── schemas/           # descriptive event, request, and state schemas
+│   └── interfaces/        # abstract interfaces
+├── docs/                  # doctrine and architecture documentation
+├── tests/                 # test suite
 └── LICENSE                # GPLv3
 ```
 
----
-
-## Documentation
-
-- [Architecture Overview](docs/runtime/architecture.md)
-- [Boot Sequence](docs/runtime/boot.md)
-- [Event Contracts](docs/io-contracts/events.md)
-- [Command Contracts](docs/io-contracts/commands.md)
-- [Failure Recovery](docs/failure-recovery/failure.md)
-
-Full documentation available in the `docs/` directory.
-
-Note: `Boot Sequence` describes runtime startup behavior. `Boot Identity Sequence` describes Velvet’s identity re-entry, body verification, policy loading, and continuity checks during wake.
-
----
-
 ## Hardware Modules
 
-Velvet Core supports pluggable hardware modules for vehicle integration:
+Hardware-facing projects are distributed separately.
 
-- **velvet-vehicle-can** — CAN bus learning and fingerprinting (read-only)
-- More modules coming soon
+- `velvet-vehicle-can` currently focuses on read-only CAN learning and fingerprinting
+- physical execution remains locked behind `velvet-runtime`
 
-Hardware modules are distributed separately and installed as optional dependencies.
-
----
+Importing a hardware package into Core does not grant authority to use it.
 
 ## Requirements
 
 - Python 3.8 or later
-- No external dependencies (stdlib only)
+- offline-first operation
+- no required cloud dependency
 
-**Optional:**
-- `python-can` — Required for CAN hardware modules
-- `pytest` — For running tests
-
----
+Optional development dependencies may include `pytest` and hardware-specific libraries in separate repos.
 
 ## Development
 
-### Running Tests
+Run tests with:
 
 ```bash
 pip install -e .[dev]
 pytest
 ```
 
-### Code Style
+Before submitting changes:
 
-This project follows PEP 8 conventions and uses type hints where applicable.
-
----
+- preserve the Core versus Runtime boundary
+- add tests for new behavior
+- avoid direct hardware or shell execution
+- update doctrine when responsibilities change
 
 ## License
 
-This project is licensed under the **GNU General Public License v3.0** (GPLv3).
-
-See [LICENSE](LICENSE) for full terms.
-
-**TL;DR:** You are free to use, modify, and distribute this software, but any modifications or network-accessible services using this code must also be open-sourced under GPLv3.
-
----
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-**Before submitting:**
-- Ensure all tests pass (`pytest`)
-- Follow existing code style
-- Add tests for new features
-- Update documentation as needed
-
----
+GNU General Public License v3.0. See [LICENSE](LICENSE).
 
 ## Contact
 
-- **GitHub**: [github.com/Velvet-ecosystem/velvet-ai-core](https://github.com/Velvet-ecosystem/velvet-ai-core)
-- **Issues**: [github.com/Velvet-ecosystem/velvet-ai-core/issues](https://github.com/Velvet-ecosystem/velvet-ai-core/issues)
-- **Discussions**: [github.com/Velvet-ecosystem/velvet-ai-core/discussions](https://github.com/Velvet-ecosystem/velvet-ai-core/discussions)
-
----
-
-## Acknowledgments
-
-Velvet AI Core is designed for automotive-grade embedded systems and builds on principles from:
-
-- Automotive Grade Linux (AGL)
-- Event-driven architecture patterns
-- Offline-first design principles
-
----
+- GitHub: [github.com/Velvet-ecosystem/velvet-ai-core](https://github.com/Velvet-ecosystem/velvet-ai-core)
+- Issues: [github.com/Velvet-ecosystem/velvet-ai-core/issues](https://github.com/Velvet-ecosystem/velvet-ai-core/issues)
 
 **Version**: 0.1.0  
-**Status**: Alpha — API subject to change
+**Status**: Alpha, API subject to change
