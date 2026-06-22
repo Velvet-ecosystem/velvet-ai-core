@@ -14,7 +14,7 @@ This project adheres to a standard code of conduct. By participating, you agree 
 
 ### Reporting Bugs
 
-1. Check existing [Issues](https://github.com/velvet-ai/velvet-ai-core/issues) to avoid duplicates
+1. Check existing [Issues](https://github.com/Velvet-ecosystem/velvet-ai-core/issues) to avoid duplicates
 2. Create a new issue with:
    - Clear description of the problem
    - Steps to reproduce
@@ -24,7 +24,7 @@ This project adheres to a standard code of conduct. By participating, you agree 
 
 ### Proposing Features
 
-1. Open a [Discussion](https://github.com/velvet-ai/velvet-ai-core/discussions) first
+1. Open an [Issue](https://github.com/Velvet-ecosystem/velvet-ai-core/issues) first
 2. Describe the use case and proposed solution
 3. Wait for maintainer feedback before implementing
 4. Large features may require design review
@@ -47,7 +47,7 @@ This project adheres to a standard code of conduct. By participating, you agree 
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/velvet-ai/velvet-ai-core.git
+git clone https://github.com/Velvet-ecosystem/velvet-ai-core.git
 cd velvet-ai-core
 ```
 
@@ -191,8 +191,8 @@ Releases are handled by maintainers:
 
 ## Questions?
 
-- Open a [Discussion](https://github.com/velvet-ai/velvet-ai-core/discussions)
-- Check existing [Issues](https://github.com/velvet-ai/velvet-ai-core/issues)
+- Open an [Issue](https://github.com/Velvet-ecosystem/velvet-ai-core/issues)
+- Review the repository [README](README.md) and documentation before opening a new question
 
 ---
 
