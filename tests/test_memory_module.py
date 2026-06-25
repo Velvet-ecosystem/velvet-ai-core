@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from velvet.core.modules.memory import MemoryModule
+from velvet.core.schemas.memory import MemoryRecord
 
 
 class MemoryModuleTests(unittest.TestCase):
@@ -33,16 +34,31 @@ class MemoryModuleTests(unittest.TestCase):
         module.stop()
 
         records = [json.loads(line) for line in self.path.read_text().splitlines()]
-        self.assertEqual([record["kind"] for record in records], ["boot", "shutdown"])
+        self.assertEqual([record["kind"] for record in records], ["system", "system"])
+        self.assertEqual(
+            [record["payload"]["event"] for record in records],
+            ["boot", "shutdown"],
+        )
         for record in records:
             self.assertEqual(record["schema_version"], 1)
             self.assertTrue(record["event_id"])
             self.assertIsInstance(record["ts"], float)
+            self.assertEqual(record["source"], "velvet-ai-core")
+            self.assertIn("lifecycle", record["tags"])
 
     def test_write_returns_stable_record_and_filtered_read_streams(self):
         module = MemoryModule(str(self.path))
         module.start()
-        written = module.write_event("observation", {"seat": "driver"})
+        written = module.write_event(
+            "observation",
+            {"seat": "driver"},
+            source="seat-monitor",
+            confidence=0.92,
+            authority_status="observed",
+            receipt_id="receipt-123",
+            related_event_ids=["prior-event"],
+            tags=["vehicle", "seat"],
+        )
         module.write_event("conversation", {"text": "hello"})
 
         observations = list(module.adapter.read("observation"))
@@ -51,6 +67,9 @@ class MemoryModuleTests(unittest.TestCase):
         self.assertEqual(len(observations), 1)
         self.assertEqual(observations[0]["event_id"], written["event_id"])
         self.assertEqual(observations[0]["payload"], {"seat": "driver"})
+        self.assertEqual(observations[0]["confidence"], 0.92)
+        self.assertEqual(observations[0]["receipt_id"], "receipt-123")
+        self.assertEqual(observations[0]["related_event_ids"], ["prior-event"])
 
     def test_reader_skips_malformed_lines_without_losing_valid_history(self):
         self.path.parent.mkdir(parents=True)
@@ -77,7 +96,25 @@ class MemoryModuleTests(unittest.TestCase):
             module.write_event("", {})
         with self.assertRaises(TypeError):
             module.write_event("observation", [])
+        with self.assertRaises(ValueError):
+            module.write_event("observation", {}, confidence=1.1)
         module.stop()
+
+    def test_memory_record_round_trip_preserves_links_without_private_expansion(self):
+        original = MemoryRecord(
+            kind="candidate",
+            payload={"claim": "driver prefers route A"},
+            source="conversation",
+            confidence=0.6,
+            authority_status="candidate",
+            related_event_ids=["conversation-1"],
+            tags=["preference"],
+        )
+
+        restored = MemoryRecord.from_dict(original.to_dict())
+
+        self.assertEqual(restored.to_dict(), original.to_dict())
+        self.assertNotIn("receipt_id", original.to_dict())
 
 
 if __name__ == "__main__":
