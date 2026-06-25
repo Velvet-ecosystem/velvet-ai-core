@@ -1,9 +1,13 @@
+# SPDX-License-Identifier: GPL-3.0-only
 # velvet/core/modules/memory.py
 from __future__ import annotations
 
 import json
 import logging
+import os
+import threading
 import time
+import uuid
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional
 
@@ -14,10 +18,7 @@ log = logging.getLogger("velvet.module.memory")
 
 
 class _FileMemoryAdapter(MemoryInterface):
-    """
-    Adapter that satisfies MemoryInterface using MemoryModule's file writer.
-    Read() is a simple streaming reader for now (good enough for early tooling).
-    """
+    """File-backed adapter for Velvet's append-only memory ledger."""
 
     def __init__(self, module: "MemoryModule") -> None:
         self._m = module
@@ -25,48 +26,71 @@ class _FileMemoryAdapter(MemoryInterface):
     def write(self, kind: str, payload: Dict[str, Any]) -> None:
         self._m.write_event(kind, payload)
 
-    def read(self, kind: str | None = None) -> Iterable[Dict[str, Any]]:
-        # Best-effort streaming read of the JSONL file.
+    def read(self, kind: Optional[str] = None) -> Iterable[Dict[str, Any]]:
         path = self._m.path
         if not path.exists():
-            return []
-        def _iter():
-            for line in path.read_text(encoding="utf-8").splitlines():
-                if not line.strip():
-                    continue
-                try:
-                    obj = json.loads(line)
+            return iter(())
+
+        def _iter() -> Iterable[Dict[str, Any]]:
+            malformed = 0
+            with path.open("r", encoding="utf-8") as handle:
+                for line_number, line in enumerate(handle, start=1):
+                    if not line.strip():
+                        continue
+                    try:
+                        obj = json.loads(line)
+                    except (TypeError, ValueError):
+                        malformed += 1
+                        log.warning(
+                            "Skipping malformed memory record at %s:%d",
+                            path,
+                            line_number,
+                        )
+                        continue
                     if not isinstance(obj, dict):
+                        malformed += 1
+                        log.warning(
+                            "Skipping non-object memory record at %s:%d",
+                            path,
+                            line_number,
+                        )
                         continue
                     if kind is None or obj.get("kind") == kind:
                         yield obj
-                except Exception:
-                    continue
+            if malformed:
+                log.warning(
+                    "Memory read completed with %d malformed record(s) skipped.",
+                    malformed,
+                )
+
         return _iter()
 
 
 class MemoryModule:
+    """Small append-only memory ledger used by the early Velvet runtime."""
+
     name = "memory"
+    schema_version = 1
 
     def __init__(self, path: str = "memory_events.jsonl") -> None:
-        # relative to WorkingDirectory (/var/lib/velvet)
+        # Relative paths are resolved by the runtime working directory
+        # (normally /var/lib/velvet).
         self.path = Path(path)
         self._fp: Optional[Any] = None
+        self._write_lock = threading.Lock()
         self.adapter = _FileMemoryAdapter(self)
 
     def start(self) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         self._fp = self.path.open("a", encoding="utf-8")
         log.info("Memory module started (path=%s).", self.path)
 
-        # Provide memory capability to the registry
         reg = get_registry()
         if reg:
             reg.provide(MemoryInterface, self.adapter)
 
-        # boot receipt
         self.write_event("boot", {"msg": "Velvet memory online"})
 
-        # emit to bus for UI
         bus = get_event_bus()
         if bus:
             bus.emit("memory.started", {"path": str(self.path)})
@@ -79,33 +103,52 @@ class MemoryModule:
 
         if self._fp:
             self.write_event("shutdown", {"msg": "Velvet memory offline"})
-            try:
-                self._fp.flush()
-                self._fp.close()
-            except Exception:
-                pass
-            self._fp = None
+            with self._write_lock:
+                try:
+                    self._fp.flush()
+                    os.fsync(self._fp.fileno())
+                    self._fp.close()
+                except OSError:
+                    log.exception("Failed to close memory ledger cleanly.")
+                finally:
+                    self._fp = None
 
         log.info("Memory module stopped.")
-
         bus = get_event_bus()
         if bus:
             bus.emit("memory.stopped", {"path": str(self.path)})
 
-    def write_event(self, kind: str, payload: Dict[str, Any]) -> None:
+    def write_event(self, kind: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        if not isinstance(kind, str) or not kind.strip():
+            raise ValueError("memory kind must be a non-empty string")
+        if not isinstance(payload, dict):
+            raise TypeError("memory payload must be a dictionary")
         if not self._fp:
-            return
+            raise RuntimeError("memory module is not started")
 
         event = {
+            "schema_version": self.schema_version,
+            "event_id": str(uuid.uuid4()),
             "ts": time.time(),
-            "kind": kind,
+            "kind": kind.strip(),
             "payload": payload,
         }
+        encoded = json.dumps(event, ensure_ascii=False, separators=(",", ":"))
 
-        self._fp.write(json.dumps(event, ensure_ascii=False) + "\n")
-        self._fp.flush()
+        with self._write_lock:
+            self._fp.write(encoded + "\n")
+            self._fp.flush()
+            os.fsync(self._fp.fileno())
 
-        # Also publish to the event bus so UI can “listen”
         bus = get_event_bus()
         if bus:
-            bus.emit("memory.event", {"kind": kind, "payload": payload})
+            bus.emit(
+                "memory.event",
+                {
+                    "event_id": event["event_id"],
+                    "kind": event["kind"],
+                    "payload": payload,
+                },
+            )
+
+        return event
