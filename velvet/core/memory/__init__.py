@@ -6,6 +6,7 @@ from .confidence import ConfidenceAssessment, MemoryConfidencePolicy
 from .decay import DecayAssessment, MemoryDecayPolicy
 from .deduplication import DuplicateGroup, MemoryDuplicateDetector
 from .lifecycle import MemoryLifecycle, MemoryTransition
+from .recall import MemoryRecallRanker, RecallCandidate, RecallScore
 
 __all__ = [
     "ConfidenceAssessment",
@@ -16,6 +17,9 @@ __all__ = [
     "MemoryDecayPolicy",
     "MemoryDuplicateDetector",
     "MemoryLifecycle",
+    "MemoryRecallRanker",
     "MemoryTransition",
     "MemoryTransitionBridge",
+    "RecallCandidate",
+    "RecallScore",
 ]
