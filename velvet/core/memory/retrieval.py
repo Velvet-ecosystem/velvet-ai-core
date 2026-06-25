@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Read-only retrieval over immutable Velvet memory records."""
-
 from __future__ import annotations
 
+import copy
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional
@@ -19,8 +18,6 @@ class RetrievedMemory:
 
 
 class MemoryRetrievalService:
-    """Rank directly associated memories without mutating storage."""
-
     def __init__(self, records: Iterable[Dict[str, Any]]) -> None:
         self._records = self._snapshot(records)
         self._by_id = {record["event_id"]: record for record in self._records}
@@ -38,24 +35,21 @@ class MemoryRetrievalService:
             raise ValueError("limit must be a positive integer")
         if query_event_id not in self._by_id:
             return []
-
         timestamp = time.time() if now is None else now
         if not isinstance(timestamp, (int, float)):
             raise TypeError("now must be numeric")
 
         candidates = []
-        records = {}
+        matched = {}
         for event_id in self._index.neighbours(query_event_id):
             record = self._by_id.get(event_id)
             if record is None:
                 continue
-            confidence = record.get("confidence", 0.5)
             event_timestamp = record.get("ts")
             if not isinstance(event_timestamp, (int, float)):
                 continue
-            age_seconds = max(0.0, float(timestamp) - float(event_timestamp))
             decay = MemoryDecayPolicy.assess(
-                age_seconds=age_seconds,
+                age_seconds=max(0.0, float(timestamp) - float(event_timestamp)),
                 tags=record.get("tags", []),
                 authority_status=record.get("authority_status"),
             )
@@ -63,15 +57,18 @@ class MemoryRetrievalService:
                 RecallCandidate(
                     event_id=event_id,
                     association=1.0,
-                    confidence=float(confidence),
+                    confidence=float(record.get("confidence", 0.5)),
                     salience=decay.salience,
                     authority_status=record.get("authority_status", "unknown"),
                 )
             )
-            records[event_id] = record
+            matched[event_id] = record
 
         ranked = MemoryRecallRanker.rank(candidates)[:limit]
-        return [RetrievedMemory(dict(records[item.event_id]), item) for item in ranked]
+        return [
+            RetrievedMemory(copy.deepcopy(matched[item.event_id]), item)
+            for item in ranked
+        ]
 
     @staticmethod
     def _snapshot(records: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -85,7 +82,7 @@ class MemoryRetrievalService:
             if event_id in seen:
                 raise ValueError("duplicate event_id: {}".format(event_id))
             seen.add(event_id)
-            snapshot.append(dict(record))
+            snapshot.append(copy.deepcopy(record))
         return snapshot
 
     @staticmethod
