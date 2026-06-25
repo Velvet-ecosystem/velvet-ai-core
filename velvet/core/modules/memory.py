@@ -6,13 +6,12 @@ import json
 import logging
 import os
 import threading
-import time
-import uuid
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 from velvet.core.context import get_event_bus, get_registry
 from velvet.core.interfaces.memory import MemoryInterface
+from velvet.core.schemas.memory import MemoryRecord
 
 log = logging.getLogger("velvet.module.memory")
 
@@ -70,7 +69,6 @@ class MemoryModule:
     """Small append-only memory ledger used by the early Velvet runtime."""
 
     name = "memory"
-    schema_version = 1
 
     def __init__(self, path: str = "memory_events.jsonl") -> None:
         # Relative paths are resolved by the runtime working directory
@@ -89,7 +87,12 @@ class MemoryModule:
         if reg:
             reg.provide(MemoryInterface, self.adapter)
 
-        self.write_event("boot", {"msg": "Velvet memory online"})
+        self.write_event(
+            "system",
+            {"event": "boot", "msg": "Velvet memory online"},
+            source="velvet-ai-core",
+            tags=["lifecycle", "boot"],
+        )
 
         bus = get_event_bus()
         if bus:
@@ -102,7 +105,12 @@ class MemoryModule:
             bus.emit("memory.stopping", {"path": str(self.path)})
 
         if self._fp:
-            self.write_event("shutdown", {"msg": "Velvet memory offline"})
+            self.write_event(
+                "system",
+                {"event": "shutdown", "msg": "Velvet memory offline"},
+                source="velvet-ai-core",
+                tags=["lifecycle", "shutdown"],
+            )
             with self._write_lock:
                 try:
                     self._fp.flush()
@@ -118,21 +126,31 @@ class MemoryModule:
         if bus:
             bus.emit("memory.stopped", {"path": str(self.path)})
 
-    def write_event(self, kind: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        if not isinstance(kind, str) or not kind.strip():
-            raise ValueError("memory kind must be a non-empty string")
-        if not isinstance(payload, dict):
-            raise TypeError("memory payload must be a dictionary")
+    def write_event(
+        self,
+        kind: str,
+        payload: Dict[str, Any],
+        source: Optional[str] = None,
+        confidence: Optional[float] = None,
+        authority_status: Optional[str] = None,
+        receipt_id: Optional[str] = None,
+        related_event_ids: Optional[List[str]] = None,
+        tags: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
         if not self._fp:
             raise RuntimeError("memory module is not started")
 
-        event = {
-            "schema_version": self.schema_version,
-            "event_id": str(uuid.uuid4()),
-            "ts": time.time(),
-            "kind": kind.strip(),
-            "payload": payload,
-        }
+        record = MemoryRecord(
+            kind=kind,
+            payload=payload,
+            source=source,
+            confidence=confidence,
+            authority_status=authority_status,
+            receipt_id=receipt_id,
+            related_event_ids=list(related_event_ids or []),
+            tags=list(tags or []),
+        )
+        event = record.to_dict()
         encoded = json.dumps(event, ensure_ascii=False, separators=(",", ":"))
 
         with self._write_lock:
@@ -142,13 +160,6 @@ class MemoryModule:
 
         bus = get_event_bus()
         if bus:
-            bus.emit(
-                "memory.event",
-                {
-                    "event_id": event["event_id"],
-                    "kind": event["kind"],
-                    "payload": payload,
-                },
-            )
+            bus.emit("memory.event", event)
 
         return event
