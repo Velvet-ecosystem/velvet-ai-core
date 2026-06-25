@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
-from .lifecycle import MemoryLifecycle
+from .lifecycle import MemoryLifecycle, MemoryTransition
 
-__all__ = ["MemoryLifecycle"]
+__all__ = ["MemoryLifecycle", "MemoryTransition"]
