@@ -18,6 +18,8 @@ class RetrievedMemory:
 
 
 class MemoryRetrievalService:
+    MAX_LIMIT = 50
+
     def __init__(self, records: Iterable[Dict[str, Any]]) -> None:
         self._records = self._snapshot(records)
         self._by_id = {record["event_id"]: record for record in self._records}
@@ -31,12 +33,14 @@ class MemoryRetrievalService:
         now: Optional[float] = None,
     ) -> List[RetrievedMemory]:
         self._require_event_id(query_event_id)
-        if not isinstance(limit, int) or limit < 1:
-            raise ValueError("limit must be a positive integer")
+        if isinstance(limit, bool) or not isinstance(limit, int):
+            raise ValueError("limit must be an integer")
+        if not 1 <= limit <= self.MAX_LIMIT:
+            raise ValueError("limit must be between 1 and {}".format(self.MAX_LIMIT))
         if query_event_id not in self._by_id:
             return []
         timestamp = time.time() if now is None else now
-        if not isinstance(timestamp, (int, float)):
+        if isinstance(timestamp, bool) or not isinstance(timestamp, (int, float)):
             raise TypeError("now must be numeric")
 
         candidates = []
@@ -46,7 +50,7 @@ class MemoryRetrievalService:
             if record is None:
                 continue
             event_timestamp = record.get("ts")
-            if not isinstance(event_timestamp, (int, float)):
+            if isinstance(event_timestamp, bool) or not isinstance(event_timestamp, (int, float)):
                 continue
             decay = MemoryDecayPolicy.assess(
                 age_seconds=max(0.0, float(timestamp) - float(event_timestamp)),
