@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
@@ -15,12 +16,15 @@ from velvet.core.memory.retrieval import MemoryRetrievalService
 def load_records(path: str) -> List[Dict[str, Any]]:
     source = Path(path)
     text = source.read_text(encoding="utf-8")
-    if source.suffix == ".jsonl":
+    if source.suffix.lower() == ".jsonl":
         records = [json.loads(line) for line in text.splitlines() if line.strip()]
     else:
         records = json.loads(text)
     if not isinstance(records, list):
         raise ValueError("memory source must contain a list of records")
+    if any(not isinstance(record, dict) for record in records):
+        raise ValueError("memory source entries must be objects")
+    MemoryRetrievalService(records)
     return records
 
 
@@ -41,6 +45,7 @@ def recall(records: Iterable[Dict[str, Any]], event_id: str, limit: int = 10) ->
 
 def neighbours(records: Iterable[Dict[str, Any]], event_id: str) -> Dict[str, Any]:
     snapshot = list(records)
+    MemoryRetrievalService(snapshot)
     index = MemoryAssociationIndex()
     index.add_records(snapshot)
     return {
@@ -85,19 +90,33 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv=None) -> int:
-    args = build_parser().parse_args(argv)
+def _run(args) -> Dict[str, Any]:
     records = load_records(args.source)
     if args.action == "recall":
-        output = recall(records, args.event_id, args.limit)
-    elif args.action == "explain":
-        output = explain(records, args.event_id, args.limit)
-    elif args.action == "neighbours":
-        output = neighbours(records, args.event_id)
-    else:
-        output = verify(records)
-    print(json.dumps(output, indent=2, sort_keys=True))
-    return 0
+        return recall(records, args.event_id, args.limit)
+    if args.action == "explain":
+        return explain(records, args.event_id, args.limit)
+    if args.action == "neighbours":
+        return neighbours(records, args.event_id)
+    return verify(records)
+
+
+def main(argv=None) -> int:
+    try:
+        args = build_parser().parse_args(argv)
+        output = _run(args)
+        print(json.dumps(output, indent=2, sort_keys=True))
+        return 0
+    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        error = {
+            "error": {
+                "type": exc.__class__.__name__,
+                "message": str(exc),
+            },
+            "ok": False,
+        }
+        print(json.dumps(error, sort_keys=True), file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
