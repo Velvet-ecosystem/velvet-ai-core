@@ -1,0 +1,21 @@
+{
+  "event_type": "vehicle.can.ghost_observation",
+  "vehicle_profile": "Jarred Tiburon",
+  "source": "examples/fixtures/ghost_can_core_observation.json",
+  "read_only": true,
+  "synthetic_fixture": true,
+  "synthetic": true,
+  "physical_bus_opened": false,
+  "hardware_bus_opened": false,
+  "can_transmission_attempted": false,
+  "can_transmission_performed": false,
+  "actuation_granted": false,
+  "actuation_performed": false,
+  "authority_granted": false,
+  "signals": {
+    "vehicle_speed": {"value": 0, "unit": "km/h", "confidence": 1.0},
+    "engine_rpm": {"value": 0, "unit": "rpm", "confidence": 0.96},
+    "ignition_state": {"value": "off", "unit": "", "confidence": 1.0},
+    "o2_fault": {"value": "simulated", "unit": "", "confidence": 0.87}
+  }
+}
