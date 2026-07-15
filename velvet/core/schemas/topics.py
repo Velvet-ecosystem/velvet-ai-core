@@ -24,6 +24,9 @@ class Topics:
     WALLET_MINT = "wallet.mint"
     WALLET_BALANCE = "wallet.balance"
 
+    # Vehicle / ghost demo
+    VEHICLE_CAN_GHOST_OBSERVATION = "vehicle.can.ghost_observation"
+
     # Health
     HEALTH_UPDATE = "health.update"
 
