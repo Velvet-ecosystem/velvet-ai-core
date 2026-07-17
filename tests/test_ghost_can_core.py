@@ -1,4 +1,4 @@
-import pytest
+import unittest
 
 from velvet.core.ghost_can import (
     GHOST_CAN_ACTION,
@@ -36,53 +36,65 @@ def ghost_payload():
     }
 
 
-def test_validate_accepts_synthetic_read_only_payload():
-    out = validate_ghost_can_observation(ghost_payload())
-    assert out["event_type"] == GHOST_CAN_EVENT_TYPE
-    assert out["read_only"] is True
+class GhostCanCoreTests(unittest.TestCase):
+    def test_validate_accepts_synthetic_read_only_payload(self):
+        out = validate_ghost_can_observation(ghost_payload())
+        self.assertEqual(out["event_type"], GHOST_CAN_EVENT_TYPE)
+        self.assertIs(out["read_only"], True)
+
+    def test_validate_rejects_missing_safety_flag(self):
+        payload = ghost_payload()
+        payload["can_transmission_attempted"] = True
+        with self.assertRaisesRegex(ValueError, "can_transmission_attempted"):
+            validate_ghost_can_observation(payload)
+
+    def test_validate_rejects_authority_keys_anywhere(self):
+        payload = ghost_payload()
+        payload["signals"]["vehicle_speed"]["command"] = "write frame"
+        with self.assertRaisesRegex(ValueError, "forbidden authority key"):
+            validate_ghost_can_observation(payload)
+
+    def test_proposal_creates_descriptive_intent_only(self):
+        intent = build_ghost_can_proposal(
+            ghost_payload(), actor="velvet-test"
+        ).to_intent()
+        self.assertEqual(intent.action, GHOST_CAN_ACTION)
+        self.assertEqual(intent.target, GHOST_CAN_TARGET)
+        self.assertIs(intent.requires_physical_presence, False)
+        self.assertIs(intent.privilege_elevation, False)
+        self.assertNotIn("executor", intent.parameters)
+
+    def test_court_authorizes_description_not_physical_action(self):
+        receipt = evaluate_ghost_can_proposal(
+            build_ghost_can_proposal(ghost_payload())
+        )
+        self.assertIs(receipt.authorized, True)
+        self.assertEqual(receipt.intent_action, GHOST_CAN_ACTION)
+        self.assertIsNone(receipt.executor)
+
+    def test_memory_record_preserves_observation_boundary(self):
+        data = ghost_can_memory_record(
+            ghost_payload(), receipt_id="r-demo"
+        ).to_dict()
+        self.assertEqual(data["kind"], "observation")
+        self.assertEqual(data["authority_status"], "observation_only")
+        self.assertEqual(
+            data["payload"]["authority_boundary"],
+            "observation_only_no_physical_authority",
+        )
+
+    def test_summary_names_no_authority(self):
+        summary = summarize_ghost_can_observation(ghost_payload())
+        self.assertIn("Jarred Tiburon", summary)
+        self.assertIn("no physical bus opened", summary)
+        self.assertIn("no authority granted", summary)
+
+    def test_topics_exports_ghost_can_event_name(self):
+        self.assertEqual(
+            Topics.VEHICLE_CAN_GHOST_OBSERVATION,
+            GHOST_CAN_EVENT_TYPE,
+        )
 
 
-def test_validate_rejects_missing_safety_flag():
-    payload = ghost_payload(); payload["can_transmission_attempted"] = True
-    with pytest.raises(ValueError, match="can_transmission_attempted"):
-        validate_ghost_can_observation(payload)
-
-
-def test_validate_rejects_authority_keys_anywhere():
-    payload = ghost_payload(); payload["signals"]["vehicle_speed"]["command"] = "write frame"
-    with pytest.raises(ValueError, match="forbidden authority key"):
-        validate_ghost_can_observation(payload)
-
-
-def test_proposal_creates_descriptive_intent_only():
-    intent = build_ghost_can_proposal(ghost_payload(), actor="velvet-test").to_intent()
-    assert intent.action == GHOST_CAN_ACTION
-    assert intent.target == GHOST_CAN_TARGET
-    assert intent.requires_physical_presence is False
-    assert intent.privilege_elevation is False
-    assert "executor" not in intent.parameters
-
-
-def test_court_authorizes_description_not_physical_action():
-    receipt = evaluate_ghost_can_proposal(build_ghost_can_proposal(ghost_payload()))
-    assert receipt.authorized is True
-    assert receipt.intent_action == GHOST_CAN_ACTION
-    assert receipt.executor is None
-
-
-def test_memory_record_preserves_observation_boundary():
-    data = ghost_can_memory_record(ghost_payload(), receipt_id="r-demo").to_dict()
-    assert data["kind"] == "observation"
-    assert data["authority_status"] == "observation_only"
-    assert data["payload"]["authority_boundary"] == "observation_only_no_physical_authority"
-
-
-def test_summary_names_no_authority():
-    summary = summarize_ghost_can_observation(ghost_payload())
-    assert "Jarred Tiburon" in summary
-    assert "no physical bus opened" in summary
-    assert "no authority granted" in summary
-
-
-def test_topics_exports_ghost_can_event_name():
-    assert Topics.VEHICLE_CAN_GHOST_OBSERVATION == GHOST_CAN_EVENT_TYPE
+if __name__ == "__main__":
+    unittest.main()
