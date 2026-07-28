@@ -4,6 +4,14 @@
 from .brainstem import BrainstemDecision, BrainstemRouter
 from .cognition import CognitiveDecision, CognitiveOutcome, ObservationEnvelope
 from .conversation import render_no_llm_ghost_response
+from .cycle import (
+    CognitiveCycle,
+    CognitiveCycleResult,
+    CognitiveKey,
+    CycleStage,
+    CycleTraceEntry,
+    KeyState,
+)
 from .handmaiden_stem import HandmaidenStem, StemResult
 from .llm_adapter import LLMPolishRequest, OptionalLLMAdapter
 from .memory import NativeMemoryNote
@@ -26,12 +34,18 @@ from .working_state import DeferredThought, OpenThread, ThreadStatus
 __all__ = [
     "BrainstemDecision",
     "BrainstemRouter",
+    "CognitiveCycle",
+    "CognitiveCycleResult",
     "CognitiveDecision",
+    "CognitiveKey",
     "CognitiveOutcome",
+    "CycleStage",
+    "CycleTraceEntry",
     "DeferredThought",
     "HandmaidenStem",
     "IntegrityFinding",
     "IntegrityReport",
+    "KeyState",
     "LLMPolishRequest",
     "NativeBrainResult",
     "NativeBrainSafetyError",
