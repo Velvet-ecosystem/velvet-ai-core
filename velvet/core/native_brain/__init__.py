@@ -10,6 +10,15 @@ from .memory import NativeMemoryNote
 from .native_loop import NativeBrainResult, run_native_brain_ghost_loop
 from .presence import PresenceContext, PresenceGate
 from .safety import NativeBrainSafetyError, authority_report, validate_no_authority_payload
+from .self_orientation import (
+    IntegrityFinding,
+    IntegrityReport,
+    NoDriftIntegrityGate,
+    PersonalityProfile,
+    PreferenceProfile,
+    SelfIdentity,
+    SelfOrientation,
+)
 from .state import NativeBrainState
 from .stems import RubyStem, VelourStem
 from .working_state import DeferredThought, OpenThread, ThreadStatus
@@ -21,17 +30,24 @@ __all__ = [
     "CognitiveOutcome",
     "DeferredThought",
     "HandmaidenStem",
+    "IntegrityFinding",
+    "IntegrityReport",
     "LLMPolishRequest",
     "NativeBrainResult",
     "NativeBrainSafetyError",
     "NativeBrainState",
     "NativeMemoryNote",
+    "NoDriftIntegrityGate",
     "ObservationEnvelope",
     "OpenThread",
     "OptionalLLMAdapter",
+    "PersonalityProfile",
+    "PreferenceProfile",
     "PresenceContext",
     "PresenceGate",
     "RubyStem",
+    "SelfIdentity",
+    "SelfOrientation",
     "StemResult",
     "ThreadStatus",
     "VelourStem",
