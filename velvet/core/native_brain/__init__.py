@@ -10,6 +10,13 @@ from .attention import (
 from .brainstem import BrainstemDecision, BrainstemRouter
 from .cognition import CognitiveDecision, CognitiveOutcome, ObservationEnvelope
 from .conversation import render_no_llm_ghost_response
+from .curiosity import (
+    CuriosityAssessment,
+    CuriosityContext,
+    CuriosityDisposition,
+    CuriosityEngine,
+    CuriosityThreadCandidate,
+)
 from .cycle import (
     CognitiveCycle,
     CognitiveCycleResult,
@@ -48,6 +55,11 @@ __all__ = [
     "CognitiveDecision",
     "CognitiveKey",
     "CognitiveOutcome",
+    "CuriosityAssessment",
+    "CuriosityContext",
+    "CuriosityDisposition",
+    "CuriosityEngine",
+    "CuriosityThreadCandidate",
     "CycleStage",
     "CycleTraceEntry",
     "DeferredThought",
