@@ -26,6 +26,13 @@ from .cycle import (
     KeyState,
 )
 from .handmaiden_stem import HandmaidenStem, StemResult
+from .judgment import (
+    ConfidenceBand,
+    JudgmentAssessment,
+    JudgmentContext,
+    JudgmentDisposition,
+    JudgmentEngine,
+)
 from .llm_adapter import LLMPolishRequest, OptionalLLMAdapter
 from .memory import NativeMemoryNote
 from .native_loop import NativeBrainResult, run_native_brain_ghost_loop
@@ -55,6 +62,7 @@ __all__ = [
     "CognitiveDecision",
     "CognitiveKey",
     "CognitiveOutcome",
+    "ConfidenceBand",
     "CuriosityAssessment",
     "CuriosityContext",
     "CuriosityDisposition",
@@ -66,6 +74,10 @@ __all__ = [
     "HandmaidenStem",
     "IntegrityFinding",
     "IntegrityReport",
+    "JudgmentAssessment",
+    "JudgmentContext",
+    "JudgmentDisposition",
+    "JudgmentEngine",
     "KeyState",
     "LLMPolishRequest",
     "NativeBrainResult",
