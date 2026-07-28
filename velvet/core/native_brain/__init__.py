@@ -1,6 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Velvet Native Brain experimental local-cognition subsystem."""
 
+from .attention import (
+    AttentionAssessment,
+    AttentionContext,
+    AttentionEngine,
+    ObservationMaturity,
+)
 from .brainstem import BrainstemDecision, BrainstemRouter
 from .cognition import CognitiveDecision, CognitiveOutcome, ObservationEnvelope
 from .conversation import render_no_llm_ghost_response
@@ -32,6 +38,9 @@ from .stems import RubyStem, VelourStem
 from .working_state import DeferredThought, OpenThread, ThreadStatus
 
 __all__ = [
+    "AttentionAssessment",
+    "AttentionContext",
+    "AttentionEngine",
     "BrainstemDecision",
     "BrainstemRouter",
     "CognitiveCycle",
@@ -53,6 +62,7 @@ __all__ = [
     "NativeMemoryNote",
     "NoDriftIntegrityGate",
     "ObservationEnvelope",
+    "ObservationMaturity",
     "OpenThread",
     "OptionalLLMAdapter",
     "PersonalityProfile",
