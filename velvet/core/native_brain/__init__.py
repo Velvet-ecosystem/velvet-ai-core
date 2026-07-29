@@ -36,6 +36,14 @@ from .judgment import (
 from .llm_adapter import LLMPolishRequest, OptionalLLMAdapter
 from .memory import NativeMemoryNote
 from .native_loop import NativeBrainResult, run_native_brain_ghost_loop
+from .patterns import (
+    PatternAssessment,
+    PatternCandidate,
+    PatternContext,
+    PatternDisposition,
+    PatternEngine,
+    PatternState,
+)
 from .presence import PresenceContext, PresenceGate
 from .safety import NativeBrainSafetyError, authority_report, validate_no_authority_payload
 from .self_orientation import (
@@ -89,6 +97,12 @@ __all__ = [
     "ObservationMaturity",
     "OpenThread",
     "OptionalLLMAdapter",
+    "PatternAssessment",
+    "PatternCandidate",
+    "PatternContext",
+    "PatternDisposition",
+    "PatternEngine",
+    "PatternState",
     "PersonalityProfile",
     "PreferenceProfile",
     "PresenceContext",
