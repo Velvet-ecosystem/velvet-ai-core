@@ -37,6 +37,14 @@ from .distributed_body import (
     WorkPlacementProposal,
     WorkRequirement,
 )
+from .expectations import (
+    ExpectationAssessment,
+    ExpectationCandidate,
+    ExpectationContext,
+    ExpectationDisposition,
+    ExpectationEngine,
+    ExpectationState,
+)
 from .handmaiden_stem import HandmaidenStem, StemResult
 from .judgment import (
     ConfidenceBand,
@@ -94,6 +102,12 @@ __all__ = [
     "DeferredThought",
     "DegradationMode",
     "DistributedBodyPlanner",
+    "ExpectationAssessment",
+    "ExpectationCandidate",
+    "ExpectationContext",
+    "ExpectationDisposition",
+    "ExpectationEngine",
+    "ExpectationState",
     "HandmaidenStem",
     "IntegrityFinding",
     "IntegrityReport",
