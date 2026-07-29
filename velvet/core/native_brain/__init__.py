@@ -46,6 +46,14 @@ from .expectations import (
     ExpectationState,
 )
 from .handmaiden_stem import HandmaidenStem, StemResult
+from .integrated_cycle import (
+    IntegratedCognitiveCycle,
+    IntegratedCycleContext,
+    IntegratedCycleOutcome,
+    IntegratedCycleResult,
+    IntegratedCycleStage,
+    IntegratedCycleTraceEntry,
+)
 from .intents import (
     IntentAssessment,
     IntentCandidate,
@@ -118,6 +126,12 @@ __all__ = [
     "ExpectationEngine",
     "ExpectationState",
     "HandmaidenStem",
+    "IntegratedCognitiveCycle",
+    "IntegratedCycleContext",
+    "IntegratedCycleOutcome",
+    "IntegratedCycleResult",
+    "IntegratedCycleStage",
+    "IntegratedCycleTraceEntry",
     "IntegrityFinding",
     "IntegrityReport",
     "IntentAssessment",
