@@ -46,6 +46,15 @@ from .expectations import (
     ExpectationState,
 )
 from .handmaiden_stem import HandmaidenStem, StemResult
+from .intents import (
+    IntentAssessment,
+    IntentCandidate,
+    IntentContext,
+    IntentDisposition,
+    IntentEngine,
+    IntentKind,
+    IntentState,
+)
 from .judgment import (
     ConfidenceBand,
     JudgmentAssessment,
@@ -111,6 +120,13 @@ __all__ = [
     "HandmaidenStem",
     "IntegrityFinding",
     "IntegrityReport",
+    "IntentAssessment",
+    "IntentCandidate",
+    "IntentContext",
+    "IntentDisposition",
+    "IntentEngine",
+    "IntentKind",
+    "IntentState",
     "JudgmentAssessment",
     "JudgmentContext",
     "JudgmentDisposition",
