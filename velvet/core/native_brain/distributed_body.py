@@ -78,21 +78,20 @@ class NodeAdvertisement:
     def __post_init__(self) -> None:
         if not self.node_id.strip() or not self.organ.strip():
             raise ValueError("node_id and organ are required")
-        for value in (self.current_load, self.health):
-            if not 0.0 <= value <= 1.0:
-                raise ValueError("load and health must be between 0 and 1")
+        if not 0.0 <= self.current_load <= 1.0 or not 0.0 <= self.health <= 1.0:
+            raise ValueError("load and health must be between 0 and 1")
         if self.max_concurrent_tasks < 1:
             raise ValueError("max_concurrent_tasks must be at least one")
         if not 0 <= self.current_tasks <= self.max_concurrent_tasks:
             raise ValueError("current_tasks must fit the declared task limit")
-        for collection in (
+        for values in (
             self.capabilities,
             self.accepted_work_classes,
             self.refused_work_classes,
             self.fallback_capabilities,
             self.temporary_absorption_capabilities,
         ):
-            if any(not item.strip() for item in collection):
+            if any(not item.strip() for item in values):
                 raise ValueError("advertised values cannot be blank")
         if self.authority != "none":
             raise ValueError("node advertisements cannot carry authority")
@@ -129,14 +128,12 @@ class WorkRequirement:
             raise ValueError("work_id and work_class are required")
         if not self.required_capabilities:
             raise ValueError("at least one required capability is required")
-        for item in self.required_capabilities + self.preferred_capabilities:
-            if not item.strip():
-                raise ValueError("work capabilities cannot be blank")
+        if any(not item.strip() for item in self.required_capabilities + self.preferred_capabilities):
+            raise ValueError("work capabilities cannot be blank")
         if self.observe_only_capability is not None and not self.observe_only_capability.strip():
             raise ValueError("observe_only_capability cannot be blank")
-        for value in (self.min_health, self.max_load):
-            if not 0.0 <= value <= 1.0:
-                raise ValueError("work thresholds must be between 0 and 1")
+        if not 0.0 <= self.min_health <= 1.0 or not 0.0 <= self.max_load <= 1.0:
+            raise ValueError("work thresholds must be between 0 and 1")
 
 
 @dataclass(frozen=True)
@@ -197,6 +194,7 @@ class DistributedBodyPlanner:
         partial = []
         observe_only = []
         exclusions = []
+        required = set(requirement.required_capabilities)
 
         for node in nodes:
             exclusion = self._exclusion_reason(requirement, node)
@@ -205,33 +203,38 @@ class DistributedBodyPlanner:
                 continue
 
             normal = set(node.capabilities)
-            fallback = normal | set(node.fallback_capabilities)
-            temporary = fallback | set(node.temporary_absorption_capabilities)
-            required = set(requirement.required_capabilities)
-
-            mode = CandidateMode.PRIMARY
+            fallback_only = set(node.fallback_capabilities) - normal
+            temporary_only = set(node.temporary_absorption_capabilities) - normal
             effective = normal
+            mode = CandidateMode.PRIMARY
+
             if required.issubset(normal):
                 if node.tier is NodeTier.QUEEN and not requirement.whole_system_coordination:
                     mode = CandidateMode.QUEEN_FALLBACK
-                elif node.overflow_capable and requirement.allow_overflow:
-                    mode = CandidateMode.OVERFLOW
-            elif required.issubset(fallback):
+            elif (
+                requirement.allow_overflow
+                and node.overflow_capable
+                and required.issubset(normal | fallback_only)
+            ):
                 mode = CandidateMode.OVERFLOW
-                effective = fallback
-            elif requirement.allow_temporary_absorption and required.issubset(temporary):
+                effective = normal | fallback_only
+            elif (
+                requirement.allow_temporary_absorption
+                and required.issubset(normal | temporary_only)
+            ):
                 mode = CandidateMode.TEMPORARY_ABSORPTION
-                effective = temporary
+                effective = normal | temporary_only
             else:
-                matched = tuple(sorted(required & temporary))
-                missing = tuple(sorted(required - temporary))
+                all_declared = normal | fallback_only | temporary_only
+                matched = tuple(sorted(required & all_declared))
+                missing = tuple(sorted(required - all_declared))
                 if requirement.allow_partial and requirement.partial_result_useful and matched:
                     partial.append(
                         self._candidate(node, requirement, CandidateMode.PARTIAL, matched, missing)
                     )
                 if (
                     requirement.observe_only_capability is not None
-                    and requirement.observe_only_capability in temporary
+                    and requirement.observe_only_capability in all_declared
                 ):
                     observe_only.append(
                         self._candidate(
@@ -256,7 +259,7 @@ class DistributedBodyPlanner:
 
         if full:
             ranked = tuple(sorted(full, key=self._sort_key))
-            replacement = (
+            degradation = (
                 DegradationMode.FULL_REPLACEMENT
                 if ranked[0].mode in {
                     CandidateMode.OVERFLOW,
@@ -269,7 +272,7 @@ class DistributedBodyPlanner:
                 work_id=requirement.work_id,
                 disposition=PlacementDisposition.PLACE_CANDIDATE,
                 candidates=ranked,
-                degradation=replacement,
+                degradation=degradation,
                 reasons=("compatible verified organs found",) + tuple(exclusions),
                 requires_court_authorization=requirement.consequential,
             )
@@ -341,23 +344,25 @@ class DistributedBodyPlanner:
         missing: Tuple[str, ...],
     ) -> WorkCandidate:
         preferred = set(requirement.preferred_capabilities)
-        preferred_match = len(preferred & set(node.capabilities))
-        preferred_ratio = preferred_match / len(preferred) if preferred else 1.0
-
+        preferred_ratio = (
+            len(preferred & set(node.capabilities)) / len(preferred)
+            if preferred
+            else 1.0
+        )
         score = (
             node.health * 0.35
             + node.available_capacity * 0.35
             + preferred_ratio * 0.15
             + (0.10 if node.availability is NodeAvailability.AVAILABLE else 0.05)
         )
-
         reasons = [f"health:{node.health:.2f}", f"capacity:{node.available_capacity:.2f}"]
+
         if mode is CandidateMode.TEMPORARY_ABSORPTION:
             score -= 0.05
             reasons.append("temporary-duty-absorption")
         elif mode is CandidateMode.OVERFLOW:
             score -= 0.02
-            reasons.append("overflow-or-fallback-capability")
+            reasons.append("overflow-fallback-capability")
         elif mode is CandidateMode.QUEEN_FALLBACK:
             score -= 0.12
             reasons.append("queen-reserved-as-fallback")
