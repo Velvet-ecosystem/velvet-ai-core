@@ -16,6 +16,33 @@ class Importance(str, Enum):
     CRITICAL = "critical"
 
 
+class Urgency(str, Enum):
+    """How quickly a recommendation may deserve governed attention."""
+
+    ROUTINE = "routine"
+    ELEVATED = "elevated"
+    URGENT = "urgent"
+    IMMEDIATE = "immediate"
+
+
+class Consequence(str, Enum):
+    """Bounded estimate of the harm possible if an understanding is correct."""
+
+    NEGLIGIBLE = "negligible"
+    LIMITED = "limited"
+    SERIOUS = "serious"
+    SEVERE = "severe"
+
+
+class ErrorCost(str, Enum):
+    """Relative cost of a false dismissal or unnecessary escalation."""
+
+    LOW = "low"
+    MODERATE = "moderate"
+    HIGH = "high"
+    EXTREME = "extreme"
+
+
 class Recommendation(str, Enum):
     IGNORE = "ignore"
     OBSERVE = "observe"
@@ -83,11 +110,31 @@ class Understanding:
 
 
 @dataclass(frozen=True)
+class EvaluationProfile:
+    """Explicit bounded inputs for consequence-aware evaluation.
+
+    The profile is supplied separately from an event payload so transport data
+    cannot silently declare its own urgency or authority posture.
+    """
+
+    urgency: Urgency = Urgency.ROUTINE
+    potential_consequence: Consequence = Consequence.NEGLIGIBLE
+    cost_of_dismissal: ErrorCost = ErrorCost.LOW
+    cost_of_escalation: ErrorCost = ErrorCost.LOW
+    confidence: float = 1.0
+    reasons: Tuple[str, ...] = ("Conservative explicit default profile",)
+
+
+@dataclass(frozen=True)
 class Evaluation:
     understanding: Understanding
     importance: Importance
     confidence: float
     reasons: Tuple[str, ...] = ()
+    urgency: Urgency = Urgency.ROUTINE
+    potential_consequence: Consequence = Consequence.NEGLIGIBLE
+    cost_of_dismissal: ErrorCost = ErrorCost.LOW
+    cost_of_escalation: ErrorCost = ErrorCost.LOW
 
 
 @dataclass(frozen=True)
