@@ -1,21 +1,22 @@
-"""Velvet Native Brain package.
-
-The Native Brain turns events into explainable recommendations. It does not
-own physical authority and must not bypass Runtime or Court.
-"""
+"""Velvet Native Brain package."""
 
 from .brain import NativeBrain
+from .distributed import DistributedReasoningCoordinator
 from .event_protocol import EventProtocolAdapter, EventProtocolError
 from .learning import LearningProposalBuilder
 from .models import (
     BrainContext,
+    CapabilityAdvertisement,
     DecisionReceipt,
     Evaluation,
+    HandoffDisposition,
     Importance,
     Judgment,
     LearningDisposition,
     LearningProposal,
     Observation,
+    ReasoningHandoff,
+    ReasoningTask,
     Recommendation,
     ReflectionReview,
     ReviewDisposition,
@@ -24,21 +25,11 @@ from .models import (
 from .reflection import ReceiptReviewer
 
 __all__ = [
-    "BrainContext",
-    "DecisionReceipt",
-    "Evaluation",
-    "EventProtocolAdapter",
-    "EventProtocolError",
-    "Importance",
-    "Judgment",
-    "LearningDisposition",
-    "LearningProposal",
-    "LearningProposalBuilder",
-    "NativeBrain",
-    "Observation",
-    "ReceiptReviewer",
-    "Recommendation",
-    "ReflectionReview",
-    "ReviewDisposition",
-    "Understanding",
+    "BrainContext", "CapabilityAdvertisement", "DecisionReceipt",
+    "DistributedReasoningCoordinator", "Evaluation", "EventProtocolAdapter",
+    "EventProtocolError", "HandoffDisposition", "Importance", "Judgment",
+    "LearningDisposition", "LearningProposal", "LearningProposalBuilder",
+    "NativeBrain", "Observation", "ReasoningHandoff", "ReasoningTask",
+    "ReceiptReviewer", "Recommendation", "ReflectionReview",
+    "ReviewDisposition", "Understanding",
 ]
