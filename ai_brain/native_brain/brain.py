@@ -8,17 +8,18 @@ from .context import ContextBuilder
 from .evaluation import Evaluator
 from .event_protocol import EventProtocolAdapter
 from .judgment import Judge
-from .models import DecisionReceipt
+from .models import DecisionReceipt, ReflectionReview
 from .observation import Observer
 from .receipts import ReceiptWriter
+from .reflection import ReceiptReviewer
 from .understanding import Understander
 
 
 class NativeBrain:
     """Run the deterministic Native Brain decision spine.
 
-    Returned receipts are recommendation records only. This class does not
-    authorize, publish, or execute physical actions.
+    Returned receipts and reviews are evidence records only. This class does not
+    authorize, publish, rewrite history, or execute physical actions.
     """
 
     def __init__(self) -> None:
@@ -29,6 +30,7 @@ class NativeBrain:
         self._judge = Judge()
         self._receipt_writer = ReceiptWriter()
         self._event_protocol = EventProtocolAdapter()
+        self._receipt_reviewer = ReceiptReviewer()
 
     def process(
         self,
@@ -55,3 +57,8 @@ class NativeBrain:
         """
 
         return self.process(self._event_protocol.normalize(record), state)
+
+    def reflect(self, receipt: DecisionReceipt) -> ReflectionReview:
+        """Create an append-only review without mutating the original receipt."""
+
+        return self._receipt_reviewer.review(receipt)
