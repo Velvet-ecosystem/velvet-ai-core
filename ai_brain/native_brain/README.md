@@ -1,10 +1,43 @@
 # Native Brain
 
-Sprint 1 scaffold.
+Velvet's Native Brain is a deterministic, local reasoning spine that converts incoming events into explainable recommendations without owning physical authority.
 
-Purpose: establish the package structure and processing pipeline for Velvet's Native Brain.
+## Core law
 
-Planned pipeline:
-Event -> Observation -> Understanding -> Evaluation -> Judgment -> Receipt
+> Events have no meaning until they are placed in context.
 
-This package intentionally contains only scaffolding during Sprint 1. Business logic will be added incrementally in later commits.
+Observation records facts. Context gives them meaning. Judgment decides their significance.
+
+## Decision spine
+
+```text
+Event
+  ↓
+Observe
+  ↓
+Context
+  ↓
+Understand
+  ↓
+Evaluate
+  ↓
+Judge
+  ↓
+Receipt
+```
+
+## Authority boundary
+
+The Native Brain may recommend. Runtime and Court authorize. Capability-bound organs execute only after authorization.
+
+## Sprint 1 posture
+
+- deterministic defaults
+- standard-library only
+- no learning
+- no prediction
+- no network dependency
+- no CAN, Qt, or hardware imports
+- no autonomous physical control
+
+See `ARCHITECTURE.md` for module responsibilities, context fields, and the implementation roadmap.
