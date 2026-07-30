@@ -1,5 +1,6 @@
 """Velvet Native Brain package."""
 
+from .attention import AttentionArbiter
 from .brain import NativeBrain
 from .distributed import DistributedReasoningCoordinator
 from .event_protocol import EventProtocolAdapter, EventProtocolError
@@ -7,6 +8,9 @@ from .freshness import EvidenceFreshnessEvaluator
 from .fusion import EvidenceFusionEngine
 from .learning import LearningProposalBuilder
 from .models import (
+    AttentionDecision,
+    AttentionDisposition,
+    AttentionProfile,
     BrainContext,
     CapabilityAdvertisement,
     Consequence,
@@ -36,6 +40,10 @@ from .models import (
 from .reflection import ReceiptReviewer
 
 __all__ = [
+    "AttentionArbiter",
+    "AttentionDecision",
+    "AttentionDisposition",
+    "AttentionProfile",
     "BrainContext",
     "CapabilityAdvertisement",
     "Consequence",
