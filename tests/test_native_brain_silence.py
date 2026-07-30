@@ -108,7 +108,7 @@ class DoctrineOfSilenceTests(unittest.TestCase):
             {"type": "vehicle.window.open", "source": "security"},
             evaluation_profile=EvaluationProfile(
                 urgency=Urgency.ELEVATED,
-                potential_consequence=Consequence.SEVERE,
+                potential_consequence=Consequence.SERIOUS,
                 cost_of_dismissal=ErrorCost.HIGH,
                 cost_of_escalation=ErrorCost.MODERATE,
                 confidence=0.8,
