@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Iterable, Mapping
 
+from .attention import AttentionArbiter
 from .context import ContextBuilder
 from .distributed import DistributedReasoningCoordinator
 from .evaluation import Evaluator
@@ -14,6 +15,8 @@ from .fusion import EvidenceFusionEngine
 from .judgment import Judge
 from .learning import LearningProposalBuilder
 from .models import (
+    AttentionDecision,
+    AttentionProfile,
     CapabilityAdvertisement,
     DecisionReceipt,
     EvidenceContribution,
@@ -41,6 +44,7 @@ class NativeBrain:
         self._evaluator = Evaluator()
         self._judge = Judge()
         self._receipt_writer = ReceiptWriter()
+        self._attention = AttentionArbiter()
         self._event_protocol = EventProtocolAdapter()
         self._receipt_reviewer = ReceiptReviewer()
         self._learning_proposals = LearningProposalBuilder()
@@ -74,6 +78,15 @@ class NativeBrain:
             state,
             evaluation_profile,
         )
+
+    def arbitrate_attention(
+        self,
+        receipt: DecisionReceipt,
+        profile: AttentionProfile | None = None,
+    ) -> AttentionDecision:
+        """Apply the Doctrine of Silence without delivering or authorizing."""
+
+        return self._attention.decide(receipt, profile)
 
     def reflect(self, receipt: DecisionReceipt) -> ReflectionReview:
         return self._receipt_reviewer.review(receipt)

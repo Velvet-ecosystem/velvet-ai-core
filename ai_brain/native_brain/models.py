@@ -50,6 +50,15 @@ class Recommendation(str, Enum):
     ESCALATE = "escalate"
 
 
+class AttentionDisposition(str, Enum):
+    """Non-authoritative outcomes from the Doctrine of Silence."""
+
+    SILENT = "silent"
+    DEFER = "defer"
+    PRESENT = "present"
+    INTERRUPT = "interrupt"
+
+
 class ReviewDisposition(str, Enum):
     ACCEPTED = "accepted"
     FLAGGED = "flagged"
@@ -153,6 +162,29 @@ class DecisionReceipt:
     @property
     def recommendation(self) -> Recommendation:
         return self.judgment.recommendation
+
+
+@dataclass(frozen=True)
+class AttentionProfile:
+    """Explicit, non-authoritative conditions for attention arbitration."""
+
+    quiet_mode: bool = False
+    focus_protected: bool = False
+    repeated_notice: bool = False
+    audience_available: bool = True
+
+
+@dataclass(frozen=True)
+class AttentionDecision:
+    """Append-only attention recommendation linked to one decision receipt."""
+
+    attention_id: str
+    receipt_id: str
+    disposition: AttentionDisposition
+    rationale: str
+    authority_granted: bool = False
+    delivery_performed: bool = False
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass(frozen=True)
