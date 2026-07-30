@@ -62,11 +62,15 @@ Combines observation and context into a plain-language interpretation of what is
 
 ### Evaluation
 
-Assesses importance, urgency, confidence, and potential consequence.
+Assesses importance, urgency, confidence, potential consequence, cost of dismissing a real condition, and cost of unnecessary escalation.
+
+Consequence inputs arrive through a separate explicit evaluation profile. Arbitrary event payloads cannot silently grade themselves as urgent, severe, trusted, or authorized.
 
 ### Judgment
 
 Produces a recommendation such as ignore, observe, notify, or escalate. It never performs the action itself.
+
+Judgment compares the cost of false dismissal with the cost of false escalation. Serious uncertainty may justify notification, but no consequence score grants authority.
 
 ### Receipt
 
@@ -102,6 +106,12 @@ Every evidence contribution carries an observation time. A separate append-only 
 
 Fresh evidence keeps its confidence. Aging evidence decays deterministically. Stale or invalid evidence remains visible in provenance but contributes no active confidence to fusion.
 
+### Consequence-aware evaluation
+
+An explicit immutable profile records urgency, consequence, confidence, cost of dismissal, and cost of escalation. Importance is derived deterministically from urgency and consequence.
+
+The default profile remains routine and observational. Higher recommendations require explicit bounded inputs and produce rationale in the decision receipt.
+
 ## Authority boundary
 
 The Native Brain may recommend.
@@ -113,6 +123,8 @@ Learning may propose.
 Organs may contribute and coordinate reasoning.
 
 Fusion and freshness may improve evidence quality.
+
+Consequence evaluation may raise recommendation severity.
 
 Runtime and Court authorize.
 
@@ -127,6 +139,7 @@ Capability-bound organs execute only after authorization.
 5. Unified-Organ distributed reasoning
 6. Cross-organ evidence fusion
 7. Evidence freshness and uncertainty decay
+8. Consequence-aware evaluation and cost of being wrong
 
 ## Current non-goals
 
