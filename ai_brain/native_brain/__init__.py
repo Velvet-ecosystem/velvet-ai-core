@@ -3,6 +3,7 @@
 from .brain import NativeBrain
 from .distributed import DistributedReasoningCoordinator
 from .event_protocol import EventProtocolAdapter, EventProtocolError
+from .freshness import EvidenceFreshnessEvaluator
 from .fusion import EvidenceFusionEngine
 from .learning import LearningProposalBuilder
 from .models import (
@@ -10,8 +11,10 @@ from .models import (
     CapabilityAdvertisement,
     DecisionReceipt,
     EvidenceContribution,
+    EvidenceFreshness,
     EvidenceFusion,
     Evaluation,
+    FreshnessDisposition,
     FusionDisposition,
     HandoffDisposition,
     Importance,
@@ -29,12 +32,33 @@ from .models import (
 from .reflection import ReceiptReviewer
 
 __all__ = [
-    "BrainContext", "CapabilityAdvertisement", "DecisionReceipt",
-    "DistributedReasoningCoordinator", "EvidenceContribution", "EvidenceFusion",
-    "EvidenceFusionEngine", "Evaluation", "EventProtocolAdapter",
-    "EventProtocolError", "FusionDisposition", "HandoffDisposition",
-    "Importance", "Judgment", "LearningDisposition", "LearningProposal",
-    "LearningProposalBuilder", "NativeBrain", "Observation", "ReasoningHandoff",
-    "ReasoningTask", "ReceiptReviewer", "Recommendation", "ReflectionReview",
-    "ReviewDisposition", "Understanding",
+    "BrainContext",
+    "CapabilityAdvertisement",
+    "DecisionReceipt",
+    "DistributedReasoningCoordinator",
+    "EvidenceContribution",
+    "EvidenceFreshness",
+    "EvidenceFreshnessEvaluator",
+    "EvidenceFusion",
+    "EvidenceFusionEngine",
+    "Evaluation",
+    "EventProtocolAdapter",
+    "EventProtocolError",
+    "FreshnessDisposition",
+    "FusionDisposition",
+    "HandoffDisposition",
+    "Importance",
+    "Judgment",
+    "LearningDisposition",
+    "LearningProposal",
+    "LearningProposalBuilder",
+    "NativeBrain",
+    "Observation",
+    "ReasoningHandoff",
+    "ReasoningTask",
+    "ReceiptReviewer",
+    "Recommendation",
+    "ReflectionReview",
+    "ReviewDisposition",
+    "Understanding",
 ]
