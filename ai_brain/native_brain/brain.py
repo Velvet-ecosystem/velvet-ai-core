@@ -6,6 +6,7 @@ from typing import Any, Mapping
 
 from .context import ContextBuilder
 from .evaluation import Evaluator
+from .event_protocol import EventProtocolAdapter
 from .judgment import Judge
 from .models import DecisionReceipt
 from .observation import Observer
@@ -14,10 +15,10 @@ from .understanding import Understander
 
 
 class NativeBrain:
-    """Run the deterministic Sprint 1 decision spine.
+    """Run the deterministic Native Brain decision spine.
 
-    The returned receipt is a recommendation record only. This class does not
-    authorize or execute physical actions.
+    Returned receipts are recommendation records only. This class does not
+    authorize, publish, or execute physical actions.
     """
 
     def __init__(self) -> None:
@@ -27,6 +28,7 @@ class NativeBrain:
         self._evaluator = Evaluator()
         self._judge = Judge()
         self._receipt_writer = ReceiptWriter()
+        self._event_protocol = EventProtocolAdapter()
 
     def process(
         self,
@@ -39,3 +41,17 @@ class NativeBrain:
         evaluation = self._evaluator.evaluate(understanding)
         judgment = self._judge.judge(evaluation)
         return self._receipt_writer.write(judgment)
+
+    def process_protocol_event(
+        self,
+        record: Mapping[str, Any],
+        state: Mapping[str, Any] | None = None,
+    ) -> DecisionReceipt:
+        """Normalize a bus record and run it through the same decision spine.
+
+        Transport acceptance is not action approval. The adapter rejects
+        authority-bearing fields in observation payloads and never publishes
+        a response back to the bus.
+        """
+
+        return self.process(self._event_protocol.normalize(record), state)
