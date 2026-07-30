@@ -30,9 +30,13 @@ Judge
 Receipt
   ↓
 Reflect
+  ↓
+Learning Proposal
 ```
 
 Reflection is append-only review. It may flag incomplete reasoning or weak confidence, but it does not rewrite the receipt, change the past, authorize action, or modify learning state.
+
+A learning proposal is also append-only evidence. It identifies a candidate worth reviewing, but it applies no change by itself.
 
 ## Responsibilities
 
@@ -74,11 +78,19 @@ Reviews a completed receipt for bounded internal quality signals such as confide
 
 Reflection produces a new linked review record. The original receipt remains immutable. A flagged review is evidence for later human inspection or future approved learning work, not permission to alter behavior.
 
+### Learning proposal
+
+Collects flagged reflection records into an immutable candidate for later governed review. It records its evidence links, subject, disposition, and rationale.
+
+A proposal cannot alter weights, prompts, policy, thresholds, memory, Runtime state, Court permissions, event subscriptions, or physical behavior. Promotion into an actual change requires a separate explicit approval and implementation path.
+
 ## Authority boundary
 
 The Native Brain may recommend.
 
 Reflection may review and flag.
+
+Learning may propose.
 
 Runtime and Court authorize.
 
@@ -91,13 +103,14 @@ Capability-bound organs execute only after authorization.
 3. Deterministic pipeline
 4. Event Protocol integration
 5. Reflection and receipt review
-6. Learning integration
+6. Proposal-only learning integration
 7. Distributed reasoning across Velvet's organs
 
 ## Current non-goals
 
 - no autonomous physical control
-- no learning or weight changes
+- no automatic weight, prompt, policy, or threshold changes
+- no self-promotion of learning proposals
 - no prediction
 - no receipt mutation or historical rewriting
 - no network dependency

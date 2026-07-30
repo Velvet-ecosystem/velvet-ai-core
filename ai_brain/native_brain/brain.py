@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 from .context import ContextBuilder
 from .evaluation import Evaluator
 from .event_protocol import EventProtocolAdapter
 from .judgment import Judge
-from .models import DecisionReceipt, ReflectionReview
+from .learning import LearningProposalBuilder
+from .models import (
+    DecisionReceipt,
+    LearningProposal,
+    ReflectionReview,
+)
 from .observation import Observer
 from .receipts import ReceiptWriter
 from .reflection import ReceiptReviewer
@@ -18,8 +23,9 @@ from .understanding import Understander
 class NativeBrain:
     """Run the deterministic Native Brain decision spine.
 
-    Returned receipts and reviews are evidence records only. This class does not
-    authorize, publish, rewrite history, or execute physical actions.
+    Returned receipts, reviews, and learning proposals are evidence records only.
+    This class does not authorize, publish, rewrite history, alter weights, or
+    execute physical actions.
     """
 
     def __init__(self) -> None:
@@ -31,6 +37,7 @@ class NativeBrain:
         self._receipt_writer = ReceiptWriter()
         self._event_protocol = EventProtocolAdapter()
         self._receipt_reviewer = ReceiptReviewer()
+        self._learning_proposals = LearningProposalBuilder()
 
     def process(
         self,
@@ -62,3 +69,12 @@ class NativeBrain:
         """Create an append-only review without mutating the original receipt."""
 
         return self._receipt_reviewer.review(receipt)
+
+    def propose_learning(
+        self,
+        reviews: Iterable[ReflectionReview],
+        subject: str,
+    ) -> LearningProposal:
+        """Create a proposal only; no learning change is applied."""
+
+        return self._learning_proposals.propose(reviews, subject)

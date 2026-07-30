@@ -6,12 +6,15 @@ own physical authority and must not bypass Runtime or Court.
 
 from .brain import NativeBrain
 from .event_protocol import EventProtocolAdapter, EventProtocolError
+from .learning import LearningProposalBuilder
 from .models import (
     BrainContext,
     DecisionReceipt,
     Evaluation,
     Importance,
     Judgment,
+    LearningDisposition,
+    LearningProposal,
     Observation,
     Recommendation,
     ReflectionReview,
@@ -28,6 +31,9 @@ __all__ = [
     "EventProtocolError",
     "Importance",
     "Judgment",
+    "LearningDisposition",
+    "LearningProposal",
+    "LearningProposalBuilder",
     "NativeBrain",
     "Observation",
     "ReceiptReviewer",
