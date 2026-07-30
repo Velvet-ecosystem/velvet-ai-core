@@ -5,6 +5,7 @@ own physical authority and must not bypass Runtime or Court.
 """
 
 from .brain import NativeBrain
+from .event_protocol import EventProtocolAdapter, EventProtocolError
 from .models import (
     BrainContext,
     DecisionReceipt,
@@ -18,6 +19,8 @@ __all__ = [
     "BrainContext",
     "DecisionReceipt",
     "Evaluation",
+    "EventProtocolAdapter",
+    "EventProtocolError",
     "Judgment",
     "NativeBrain",
     "Observation",
