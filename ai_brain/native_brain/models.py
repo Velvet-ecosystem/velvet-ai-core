@@ -26,6 +26,13 @@ class Recommendation(str, Enum):
     ESCALATE = "escalate"
 
 
+class ReviewDisposition(str, Enum):
+    """Non-authoritative outcomes from receipt reflection."""
+
+    ACCEPTED = "accepted"
+    FLAGGED = "flagged"
+
+
 @dataclass(frozen=True)
 class Observation:
     event_type: str
@@ -80,3 +87,15 @@ class DecisionReceipt:
     @property
     def recommendation(self) -> Recommendation:
         return self.judgment.recommendation
+
+
+@dataclass(frozen=True)
+class ReflectionReview:
+    """Append-only review linked to an immutable decision receipt."""
+
+    receipt_id: str
+    disposition: ReviewDisposition
+    notes: Tuple[str, ...] = ()
+    reviewed_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )

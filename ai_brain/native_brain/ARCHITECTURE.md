@@ -28,7 +28,11 @@ Evaluate
 Judge
   ↓
 Receipt
+  ↓
+Reflect
 ```
+
+Reflection is append-only review. It may flag incomplete reasoning or weak confidence, but it does not rewrite the receipt, change the past, authorize action, or modify learning state.
 
 ## Responsibilities
 
@@ -64,9 +68,17 @@ Produces a recommendation such as ignore, observe, notify, or escalate. It never
 
 Records the reasoning path, including decisions to take no action.
 
+### Reflection
+
+Reviews a completed receipt for bounded internal quality signals such as confidence range, evidence reasons, and rationale completeness.
+
+Reflection produces a new linked review record. The original receipt remains immutable. A flagged review is evidence for later human inspection or future approved learning work, not permission to alter behavior.
+
 ## Authority boundary
 
 The Native Brain may recommend.
+
+Reflection may review and flag.
 
 Runtime and Court authorize.
 
@@ -82,11 +94,12 @@ Capability-bound organs execute only after authorization.
 6. Learning integration
 7. Distributed reasoning across Velvet's organs
 
-## Non-goals for Sprint 1
+## Current non-goals
 
 - no autonomous physical control
-- no learning
+- no learning or weight changes
 - no prediction
+- no receipt mutation or historical rewriting
 - no network dependency
 - no CAN, Qt, or hardware imports
 - no authority bypass

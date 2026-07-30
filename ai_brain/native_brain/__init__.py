@@ -10,10 +10,15 @@ from .models import (
     BrainContext,
     DecisionReceipt,
     Evaluation,
+    Importance,
     Judgment,
     Observation,
+    Recommendation,
+    ReflectionReview,
+    ReviewDisposition,
     Understanding,
 )
+from .reflection import ReceiptReviewer
 
 __all__ = [
     "BrainContext",
@@ -21,8 +26,13 @@ __all__ = [
     "Evaluation",
     "EventProtocolAdapter",
     "EventProtocolError",
+    "Importance",
     "Judgment",
     "NativeBrain",
     "Observation",
+    "ReceiptReviewer",
+    "Recommendation",
+    "ReflectionReview",
+    "ReviewDisposition",
     "Understanding",
 ]
