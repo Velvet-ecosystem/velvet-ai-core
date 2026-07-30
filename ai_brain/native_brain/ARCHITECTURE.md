@@ -6,11 +6,13 @@ The Native Brain is Velvet's local reasoning spine. It converts incoming events 
 
 The Native Brain does not directly actuate hardware, bypass Court, or become an alternate authority path.
 
-## Core law
+## Core laws
 
 > Events have no meaning until they are placed in context.
 
-Observation records facts. Context gives them meaning. Judgment decides their significance.
+> Silence is a decision, not an absence.
+
+Observation records facts. Context gives them meaning. Judgment decides their significance. Attention arbitration decides whether a completed receipt deserves silence, waiting, ordinary presentation, or interruption.
 
 ## Decision spine
 
@@ -28,15 +30,17 @@ Evaluate
 Judge
   ↓
 Receipt
-  ↓
-Reflect
-  ↓
-Learning Proposal
+  ├──→ Attention Decision
+  └──→ Reflect
+          ↓
+      Learning Proposal
 ```
 
 Reflection is append-only review. It may flag incomplete reasoning or weak confidence, but it does not rewrite the receipt, change the past, authorize action, or modify learning state.
 
 A learning proposal is also append-only evidence. It identifies a candidate worth reviewing, but it applies no change by itself.
+
+An attention decision is append-only. It does not deliver a message or grant permission.
 
 ## Responsibilities
 
@@ -75,6 +79,19 @@ Judgment compares the cost of false dismissal with the cost of false escalation.
 ### Receipt
 
 Records the reasoning path, including decisions to take no action.
+
+### Doctrine of Silence
+
+Consumes a completed receipt and an explicit attention profile. It records one of four dispositions:
+
+- silent
+- defer
+- present
+- interrupt
+
+Routine observation remains quiet. Ordinary notifications may wait during quiet mode, protected focus, repetition, or temporary audience absence. Critical importance, immediate urgency, or governed escalation may request interruption despite ordinary silence preferences.
+
+This layer is distinct from observation-maturity or priority scoring. A high attention score can strengthen reasoning, but it does not prove delivery, grant authority, or bypass this arbitration boundary.
 
 ### Reflection
 
@@ -116,6 +133,8 @@ The default profile remains routine and observational. Higher recommendations re
 
 The Native Brain may recommend.
 
+Attention arbitration may remain silent, defer, present, or request interruption.
+
 Reflection may review and flag.
 
 Learning may propose.
@@ -126,11 +145,9 @@ Fusion and freshness may improve evidence quality.
 
 Consequence evaluation may raise recommendation severity.
 
-Runtime and Court authorize.
+Runtime may coordinate delivery. Court authorizes. Capability-bound organs execute only after authorization.
 
-Capability-bound organs execute only after authorization.
-
-## Delivered sprint sequence
+## Delivered foundation sequence
 
 1. Decision-spine foundation
 2. Event Protocol boundary
@@ -140,12 +157,14 @@ Capability-bound organs execute only after authorization.
 6. Cross-organ evidence fusion
 7. Evidence freshness and uncertainty decay
 8. Consequence-aware evaluation and cost of being wrong
+9. Doctrine of Silence and attention arbitration
 
 ## Current non-goals
 
 - no autonomous physical control
 - no automatic weight, prompt, policy, or threshold changes
 - no self-promotion of learning proposals
+- no direct notification delivery
 - no prediction
 - no receipt mutation or historical rewriting
 - no network dependency
