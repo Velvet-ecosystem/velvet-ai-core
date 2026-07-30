@@ -12,8 +12,11 @@ from .models import (
     Evaluation,
     Judgment,
     Observation,
+    ReflectionReview,
+    ReviewDisposition,
     Understanding,
 )
+from .reflection import ReceiptReviewer
 
 __all__ = [
     "BrainContext",
@@ -24,5 +27,8 @@ __all__ = [
     "Judgment",
     "NativeBrain",
     "Observation",
+    "ReceiptReviewer",
+    "ReflectionReview",
+    "ReviewDisposition",
     "Understanding",
 ]
