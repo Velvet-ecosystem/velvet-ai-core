@@ -19,6 +19,7 @@ from .models import (
     EvidenceContribution,
     EvidenceFreshness,
     EvidenceFusion,
+    EvaluationProfile,
     LearningProposal,
     ReasoningHandoff,
     ReasoningTask,
@@ -51,11 +52,12 @@ class NativeBrain:
         self,
         event: Mapping[str, Any],
         state: Mapping[str, Any] | None = None,
+        evaluation_profile: EvaluationProfile | None = None,
     ) -> DecisionReceipt:
         observation = self._observer.observe(event)
         context = self._context_builder.build(state)
         understanding = self._understander.understand(observation, context)
-        evaluation = self._evaluator.evaluate(understanding)
+        evaluation = self._evaluator.evaluate(understanding, evaluation_profile)
         judgment = self._judge.judge(evaluation)
         return self._receipt_writer.write(judgment)
 
@@ -63,8 +65,15 @@ class NativeBrain:
         self,
         record: Mapping[str, Any],
         state: Mapping[str, Any] | None = None,
+        evaluation_profile: EvaluationProfile | None = None,
     ) -> DecisionReceipt:
-        return self.process(self._event_protocol.normalize(record), state)
+        """Normalize transport data while keeping risk grading out-of-band."""
+
+        return self.process(
+            self._event_protocol.normalize(record),
+            state,
+            evaluation_profile,
+        )
 
     def reflect(self, receipt: DecisionReceipt) -> ReflectionReview:
         return self._receipt_reviewer.review(receipt)

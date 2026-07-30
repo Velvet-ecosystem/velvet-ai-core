@@ -9,11 +9,14 @@ from .learning import LearningProposalBuilder
 from .models import (
     BrainContext,
     CapabilityAdvertisement,
+    Consequence,
     DecisionReceipt,
+    ErrorCost,
     EvidenceContribution,
     EvidenceFreshness,
     EvidenceFusion,
     Evaluation,
+    EvaluationProfile,
     FreshnessDisposition,
     FusionDisposition,
     HandoffDisposition,
@@ -28,20 +31,24 @@ from .models import (
     ReflectionReview,
     ReviewDisposition,
     Understanding,
+    Urgency,
 )
 from .reflection import ReceiptReviewer
 
 __all__ = [
     "BrainContext",
     "CapabilityAdvertisement",
+    "Consequence",
     "DecisionReceipt",
     "DistributedReasoningCoordinator",
+    "ErrorCost",
     "EvidenceContribution",
     "EvidenceFreshness",
     "EvidenceFreshnessEvaluator",
     "EvidenceFusion",
     "EvidenceFusionEngine",
     "Evaluation",
+    "EvaluationProfile",
     "EventProtocolAdapter",
     "EventProtocolError",
     "FreshnessDisposition",
@@ -61,4 +68,5 @@ __all__ = [
     "ReflectionReview",
     "ReviewDisposition",
     "Understanding",
+    "Urgency",
 ]
