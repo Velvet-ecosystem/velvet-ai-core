@@ -24,20 +24,32 @@ Evaluate
 Judge
   ↓
 Receipt
+  ↓
+Reflect
+  ↓
+Learning Proposal
 ```
 
-## Authority boundary
+Around that spine, bounded subsystems provide Event Protocol normalization, Unified-Organ reasoning coordination, evidence fusion, evidence freshness, and consequence-aware evaluation.
 
-The Native Brain may recommend. Runtime and Court authorize. Capability-bound organs execute only after authorization.
+## Current posture
 
-## Sprint 1 posture
-
-- deterministic defaults
-- standard-library only
-- no learning
+- local and standard-library only
+- deterministic recommendation behavior
+- explicit context and evidence receipts
+- proposal-only learning
+- Unified-Organ load sharing without an agent swarm
+- confidence decay for aging evidence
+- separate costs for false dismissal and false escalation
 - no prediction
 - no network dependency
 - no CAN, Qt, or hardware imports
 - no autonomous physical control
 
-See `ARCHITECTURE.md` for module responsibilities, context fields, and the implementation roadmap.
+## Authority boundary
+
+The Native Brain may recommend. Runtime and Court authorize. Capability-bound organs execute only after authorization.
+
+An event cannot declare its own authority. Agreement, freshness, confidence, owner presence, urgency, or severe consequence may strengthen a recommendation, but none unlock execution.
+
+See `ARCHITECTURE.md` for the delivered sprint sequence and module responsibilities.
