@@ -84,6 +84,24 @@ Collects flagged reflection records into an immutable candidate for later govern
 
 A proposal cannot alter weights, prompts, policy, thresholds, memory, Runtime state, Court permissions, event subscriptions, or physical behavior. Promotion into an actual change requires a separate explicit approval and implementation path.
 
+### Unified-Organ coordination
+
+Organs advertise capability, load, health, availability, limits, and fallback posture. The coordinator may offer, refuse, hand off, or escalate bounded reasoning work.
+
+A handoff is coordination, not authorization. It never creates independent agent identity, private goals, or a direct organ-to-organ authority lane.
+
+### Cross-organ evidence fusion
+
+Named organs may contribute findings about one shared subject. Fusion preserves source links, agreement, conflict, uncertainty, and confidence without turning consensus into permission.
+
+Conflicting findings remain visible. A coherent fusion is stronger evidence only.
+
+### Evidence freshness
+
+Every evidence contribution carries an observation time. A separate append-only freshness review records its age and effective confidence.
+
+Fresh evidence keeps its confidence. Aging evidence decays deterministically. Stale or invalid evidence remains visible in provenance but contributes no active confidence to fusion.
+
 ## Authority boundary
 
 The Native Brain may recommend.
@@ -92,19 +110,23 @@ Reflection may review and flag.
 
 Learning may propose.
 
+Organs may contribute and coordinate reasoning.
+
+Fusion and freshness may improve evidence quality.
+
 Runtime and Court authorize.
 
 Capability-bound organs execute only after authorization.
 
-## Sprint roadmap
+## Delivered sprint sequence
 
-1. Package skeleton and architecture
-2. Shared data models
-3. Deterministic pipeline
-4. Event Protocol integration
-5. Reflection and receipt review
-6. Proposal-only learning integration
-7. Distributed reasoning across Velvet's organs
+1. Decision-spine foundation
+2. Event Protocol boundary
+3. Reflection and receipt review
+4. Proposal-only learning
+5. Unified-Organ distributed reasoning
+6. Cross-organ evidence fusion
+7. Evidence freshness and uncertainty decay
 
 ## Current non-goals
 
