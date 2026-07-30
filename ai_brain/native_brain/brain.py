@@ -5,13 +5,17 @@ from __future__ import annotations
 from typing import Any, Iterable, Mapping
 
 from .context import ContextBuilder
+from .distributed import DistributedReasoningCoordinator
 from .evaluation import Evaluator
 from .event_protocol import EventProtocolAdapter
 from .judgment import Judge
 from .learning import LearningProposalBuilder
 from .models import (
+    CapabilityAdvertisement,
     DecisionReceipt,
     LearningProposal,
+    ReasoningHandoff,
+    ReasoningTask,
     ReflectionReview,
 )
 from .observation import Observer
@@ -21,12 +25,7 @@ from .understanding import Understander
 
 
 class NativeBrain:
-    """Run the deterministic Native Brain decision spine.
-
-    Returned receipts, reviews, and learning proposals are evidence records only.
-    This class does not authorize, publish, rewrite history, alter weights, or
-    execute physical actions.
-    """
+    """Run Velvet's deterministic, recommendation-only reasoning spine."""
 
     def __init__(self) -> None:
         self._observer = Observer()
@@ -38,12 +37,9 @@ class NativeBrain:
         self._event_protocol = EventProtocolAdapter()
         self._receipt_reviewer = ReceiptReviewer()
         self._learning_proposals = LearningProposalBuilder()
+        self._distributed = DistributedReasoningCoordinator()
 
-    def process(
-        self,
-        event: Mapping[str, Any],
-        state: Mapping[str, Any] | None = None,
-    ) -> DecisionReceipt:
+    def process(self, event: Mapping[str, Any], state: Mapping[str, Any] | None = None) -> DecisionReceipt:
         observation = self._observer.observe(event)
         context = self._context_builder.build(state)
         understanding = self._understander.understand(observation, context)
@@ -51,30 +47,20 @@ class NativeBrain:
         judgment = self._judge.judge(evaluation)
         return self._receipt_writer.write(judgment)
 
-    def process_protocol_event(
-        self,
-        record: Mapping[str, Any],
-        state: Mapping[str, Any] | None = None,
-    ) -> DecisionReceipt:
-        """Normalize a bus record and run it through the same decision spine.
-
-        Transport acceptance is not action approval. The adapter rejects
-        authority-bearing fields in observation payloads and never publishes
-        a response back to the bus.
-        """
-
+    def process_protocol_event(self, record: Mapping[str, Any], state: Mapping[str, Any] | None = None) -> DecisionReceipt:
         return self.process(self._event_protocol.normalize(record), state)
 
     def reflect(self, receipt: DecisionReceipt) -> ReflectionReview:
-        """Create an append-only review without mutating the original receipt."""
-
         return self._receipt_reviewer.review(receipt)
 
-    def propose_learning(
-        self,
-        reviews: Iterable[ReflectionReview],
-        subject: str,
-    ) -> LearningProposal:
-        """Create a proposal only; no learning change is applied."""
-
+    def propose_learning(self, reviews: Iterable[ReflectionReview], subject: str) -> LearningProposal:
         return self._learning_proposals.propose(reviews, subject)
+
+    def offer_reasoning_task(
+        self,
+        task: ReasoningTask,
+        advertisements: Iterable[CapabilityAdvertisement],
+    ) -> ReasoningHandoff:
+        """Return a bounded handoff record; no task is executed or authorized."""
+
+        return self._distributed.offer(task, advertisements)
