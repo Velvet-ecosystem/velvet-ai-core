@@ -10,8 +10,6 @@ from uuid import uuid4
 
 
 class Importance(str, Enum):
-    """Initial deterministic importance levels."""
-
     ROUTINE = "routine"
     INTERESTING = "interesting"
     IMPORTANT = "important"
@@ -19,8 +17,6 @@ class Importance(str, Enum):
 
 
 class Recommendation(str, Enum):
-    """Recommendations the brain may return without executing them."""
-
     IGNORE = "ignore"
     OBSERVE = "observe"
     NOTIFY = "notify"
@@ -28,17 +24,21 @@ class Recommendation(str, Enum):
 
 
 class ReviewDisposition(str, Enum):
-    """Non-authoritative outcomes from receipt reflection."""
-
     ACCEPTED = "accepted"
     FLAGGED = "flagged"
 
 
 class LearningDisposition(str, Enum):
-    """Non-authoritative states for bounded learning proposals."""
-
     PROPOSED = "proposed"
     INSUFFICIENT_EVIDENCE = "insufficient_evidence"
+
+
+class HandoffDisposition(str, Enum):
+    """Non-authoritative states for distributed reasoning offers."""
+
+    OFFERED = "offered"
+    REFUSED = "refused"
+    ESCALATE = "escalate"
 
 
 @dataclass(frozen=True)
@@ -46,9 +46,7 @@ class Observation:
     event_type: str
     source: str
     payload: Mapping[str, Any] = field(default_factory=dict)
-    observed_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    observed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass(frozen=True)
@@ -88,9 +86,7 @@ class Judgment:
 class DecisionReceipt:
     judgment: Judgment
     receipt_id: str
-    created_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     @property
     def recommendation(self) -> Recommendation:
@@ -99,21 +95,15 @@ class DecisionReceipt:
 
 @dataclass(frozen=True)
 class ReflectionReview:
-    """Append-only review linked to an immutable decision receipt."""
-
     receipt_id: str
     disposition: ReviewDisposition
     notes: Tuple[str, ...] = ()
     review_id: str = field(default_factory=lambda: str(uuid4()))
-    reviewed_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    reviewed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass(frozen=True)
 class LearningProposal:
-    """Immutable candidate for later governed promotion review."""
-
     proposal_id: str
     subject: str
     source_review_ids: Tuple[str, ...]
@@ -121,6 +111,41 @@ class LearningProposal:
     disposition: LearningDisposition
     rationale: str
     changes_applied: bool = False
-    created_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+@dataclass(frozen=True)
+class CapabilityAdvertisement:
+    """One organ's bounded capability, load, health, and availability snapshot."""
+
+    organ_name: str
+    capabilities: Tuple[str, ...]
+    load: float
+    healthy: bool = True
+    available: bool = True
+    limits: Tuple[str, ...] = ()
+    fallback: str | None = None
+
+
+@dataclass(frozen=True)
+class ReasoningTask:
+    """A bounded reasoning offer, never an execution command."""
+
+    task_id: str
+    capability: str
+    summary: str
+    source_receipt_id: str | None = None
+
+
+@dataclass(frozen=True)
+class ReasoningHandoff:
+    """Append-only coordination record with no authority or execution claim."""
+
+    handoff_id: str
+    task_id: str
+    disposition: HandoffDisposition
+    target_organ: str | None
+    rationale: str
+    authority_granted: bool = False
+    execution_performed: bool = False
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
