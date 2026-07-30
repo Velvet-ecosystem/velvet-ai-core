@@ -88,7 +88,7 @@ class EvidenceFusionEngine:
         elif len(claims) > 1:
             disposition = FusionDisposition.CONFLICTED
             rationale = (
-                "Current organ findings conflict; disagreement is preserved."
+                "Current organs supplied conflicting findings; disagreement is preserved."
             )
         else:
             disposition = FusionDisposition.COHERENT
