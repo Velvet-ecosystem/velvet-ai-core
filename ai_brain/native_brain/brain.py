@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Iterable, Mapping
 
 from .context import ContextBuilder
 from .distributed import DistributedReasoningCoordinator
 from .evaluation import Evaluator
 from .event_protocol import EventProtocolAdapter
+from .freshness import EvidenceFreshnessEvaluator
 from .fusion import EvidenceFusionEngine
 from .judgment import Judge
 from .learning import LearningProposalBuilder
@@ -15,6 +17,7 @@ from .models import (
     CapabilityAdvertisement,
     DecisionReceipt,
     EvidenceContribution,
+    EvidenceFreshness,
     EvidenceFusion,
     LearningProposal,
     ReasoningHandoff,
@@ -41,9 +44,14 @@ class NativeBrain:
         self._receipt_reviewer = ReceiptReviewer()
         self._learning_proposals = LearningProposalBuilder()
         self._distributed = DistributedReasoningCoordinator()
-        self._fusion = EvidenceFusionEngine()
+        self._freshness = EvidenceFreshnessEvaluator()
+        self._fusion = EvidenceFusionEngine(freshness=self._freshness)
 
-    def process(self, event: Mapping[str, Any], state: Mapping[str, Any] | None = None) -> DecisionReceipt:
+    def process(
+        self,
+        event: Mapping[str, Any],
+        state: Mapping[str, Any] | None = None,
+    ) -> DecisionReceipt:
         observation = self._observer.observe(event)
         context = self._context_builder.build(state)
         understanding = self._understander.understand(observation, context)
@@ -51,13 +59,21 @@ class NativeBrain:
         judgment = self._judge.judge(evaluation)
         return self._receipt_writer.write(judgment)
 
-    def process_protocol_event(self, record: Mapping[str, Any], state: Mapping[str, Any] | None = None) -> DecisionReceipt:
+    def process_protocol_event(
+        self,
+        record: Mapping[str, Any],
+        state: Mapping[str, Any] | None = None,
+    ) -> DecisionReceipt:
         return self.process(self._event_protocol.normalize(record), state)
 
     def reflect(self, receipt: DecisionReceipt) -> ReflectionReview:
         return self._receipt_reviewer.review(receipt)
 
-    def propose_learning(self, reviews: Iterable[ReflectionReview], subject: str) -> LearningProposal:
+    def propose_learning(
+        self,
+        reviews: Iterable[ReflectionReview],
+        subject: str,
+    ) -> LearningProposal:
         return self._learning_proposals.propose(reviews, subject)
 
     def offer_reasoning_task(
@@ -67,11 +83,21 @@ class NativeBrain:
     ) -> ReasoningHandoff:
         return self._distributed.offer(task, advertisements)
 
+    def evaluate_evidence_freshness(
+        self,
+        contributions: Iterable[EvidenceContribution],
+        now: datetime | None = None,
+    ) -> tuple[EvidenceFreshness, ...]:
+        """Review evidence age without mutating or authorizing anything."""
+
+        return self._freshness.evaluate_many(contributions, now)
+
     def fuse_evidence(
         self,
         subject: str,
         contributions: Iterable[EvidenceContribution],
+        now: datetime | None = None,
     ) -> EvidenceFusion:
-        """Create an evidence record only; consensus grants no authority."""
+        """Fuse current evidence only; confidence never grants authority."""
 
-        return self._fusion.fuse(subject, contributions)
+        return self._fusion.fuse(subject, contributions, now)
