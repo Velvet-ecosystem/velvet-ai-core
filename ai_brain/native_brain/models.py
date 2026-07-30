@@ -34,11 +34,17 @@ class LearningDisposition(str, Enum):
 
 
 class HandoffDisposition(str, Enum):
-    """Non-authoritative states for distributed reasoning offers."""
-
     OFFERED = "offered"
     REFUSED = "refused"
     ESCALATE = "escalate"
+
+
+class FusionDisposition(str, Enum):
+    """Non-authoritative outcomes from cross-organ evidence fusion."""
+
+    COHERENT = "coherent"
+    CONFLICTED = "conflicted"
+    INSUFFICIENT_EVIDENCE = "insufficient_evidence"
 
 
 @dataclass(frozen=True)
@@ -116,8 +122,6 @@ class LearningProposal:
 
 @dataclass(frozen=True)
 class CapabilityAdvertisement:
-    """One organ's bounded capability, load, health, and availability snapshot."""
-
     organ_name: str
     capabilities: Tuple[str, ...]
     load: float
@@ -129,8 +133,6 @@ class CapabilityAdvertisement:
 
 @dataclass(frozen=True)
 class ReasoningTask:
-    """A bounded reasoning offer, never an execution command."""
-
     task_id: str
     capability: str
     summary: str
@@ -139,12 +141,36 @@ class ReasoningTask:
 
 @dataclass(frozen=True)
 class ReasoningHandoff:
-    """Append-only coordination record with no authority or execution claim."""
-
     handoff_id: str
     task_id: str
     disposition: HandoffDisposition
     target_organ: str | None
+    rationale: str
+    authority_granted: bool = False
+    execution_performed: bool = False
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+@dataclass(frozen=True)
+class EvidenceContribution:
+    """One organ's append-only finding about a shared subject."""
+
+    organ_name: str
+    claim: str
+    confidence: float
+    source_receipt_id: str | None = None
+    contribution_id: str = field(default_factory=lambda: str(uuid4()))
+
+
+@dataclass(frozen=True)
+class EvidenceFusion:
+    """Combined evidence record that never grants authority or execution."""
+
+    fusion_id: str
+    subject: str
+    contribution_ids: Tuple[str, ...]
+    disposition: FusionDisposition
+    confidence: float
     rationale: str
     authority_granted: bool = False
     execution_performed: bool = False

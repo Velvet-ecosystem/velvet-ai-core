@@ -8,11 +8,14 @@ from .context import ContextBuilder
 from .distributed import DistributedReasoningCoordinator
 from .evaluation import Evaluator
 from .event_protocol import EventProtocolAdapter
+from .fusion import EvidenceFusionEngine
 from .judgment import Judge
 from .learning import LearningProposalBuilder
 from .models import (
     CapabilityAdvertisement,
     DecisionReceipt,
+    EvidenceContribution,
+    EvidenceFusion,
     LearningProposal,
     ReasoningHandoff,
     ReasoningTask,
@@ -38,6 +41,7 @@ class NativeBrain:
         self._receipt_reviewer = ReceiptReviewer()
         self._learning_proposals = LearningProposalBuilder()
         self._distributed = DistributedReasoningCoordinator()
+        self._fusion = EvidenceFusionEngine()
 
     def process(self, event: Mapping[str, Any], state: Mapping[str, Any] | None = None) -> DecisionReceipt:
         observation = self._observer.observe(event)
@@ -61,6 +65,13 @@ class NativeBrain:
         task: ReasoningTask,
         advertisements: Iterable[CapabilityAdvertisement],
     ) -> ReasoningHandoff:
-        """Return a bounded handoff record; no task is executed or authorized."""
-
         return self._distributed.offer(task, advertisements)
+
+    def fuse_evidence(
+        self,
+        subject: str,
+        contributions: Iterable[EvidenceContribution],
+    ) -> EvidenceFusion:
+        """Create an evidence record only; consensus grants no authority."""
+
+        return self._fusion.fuse(subject, contributions)

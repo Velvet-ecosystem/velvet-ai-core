@@ -3,12 +3,16 @@
 from .brain import NativeBrain
 from .distributed import DistributedReasoningCoordinator
 from .event_protocol import EventProtocolAdapter, EventProtocolError
+from .fusion import EvidenceFusionEngine
 from .learning import LearningProposalBuilder
 from .models import (
     BrainContext,
     CapabilityAdvertisement,
     DecisionReceipt,
+    EvidenceContribution,
+    EvidenceFusion,
     Evaluation,
+    FusionDisposition,
     HandoffDisposition,
     Importance,
     Judgment,
@@ -26,10 +30,11 @@ from .reflection import ReceiptReviewer
 
 __all__ = [
     "BrainContext", "CapabilityAdvertisement", "DecisionReceipt",
-    "DistributedReasoningCoordinator", "Evaluation", "EventProtocolAdapter",
-    "EventProtocolError", "HandoffDisposition", "Importance", "Judgment",
-    "LearningDisposition", "LearningProposal", "LearningProposalBuilder",
-    "NativeBrain", "Observation", "ReasoningHandoff", "ReasoningTask",
-    "ReceiptReviewer", "Recommendation", "ReflectionReview",
+    "DistributedReasoningCoordinator", "EvidenceContribution", "EvidenceFusion",
+    "EvidenceFusionEngine", "Evaluation", "EventProtocolAdapter",
+    "EventProtocolError", "FusionDisposition", "HandoffDisposition",
+    "Importance", "Judgment", "LearningDisposition", "LearningProposal",
+    "LearningProposalBuilder", "NativeBrain", "Observation", "ReasoningHandoff",
+    "ReasoningTask", "ReceiptReviewer", "Recommendation", "ReflectionReview",
     "ReviewDisposition", "Understanding",
 ]
