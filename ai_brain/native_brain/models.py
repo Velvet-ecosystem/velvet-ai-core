@@ -47,6 +47,15 @@ class FusionDisposition(str, Enum):
     INSUFFICIENT_EVIDENCE = "insufficient_evidence"
 
 
+class FreshnessDisposition(str, Enum):
+    """Time-quality states for append-only evidence contributions."""
+
+    FRESH = "fresh"
+    AGING = "aging"
+    STALE = "stale"
+    INVALID = "invalid"
+
+
 @dataclass(frozen=True)
 class Observation:
     event_type: str
@@ -160,6 +169,23 @@ class EvidenceContribution:
     confidence: float
     source_receipt_id: str | None = None
     contribution_id: str = field(default_factory=lambda: str(uuid4()))
+    observed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+@dataclass(frozen=True)
+class EvidenceFreshness:
+    """Append-only time-quality review of one evidence contribution."""
+
+    freshness_id: str
+    contribution_id: str
+    disposition: FreshnessDisposition
+    age_seconds: float
+    base_confidence: float
+    effective_confidence: float
+    rationale: str
+    authority_granted: bool = False
+    execution_performed: bool = False
+    evaluated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass(frozen=True)
@@ -172,6 +198,10 @@ class EvidenceFusion:
     disposition: FusionDisposition
     confidence: float
     rationale: str
+    freshness_ids: Tuple[str, ...] = ()
+    active_contribution_ids: Tuple[str, ...] = ()
+    stale_contribution_ids: Tuple[str, ...] = ()
+    invalid_contribution_ids: Tuple[str, ...] = ()
     authority_granted: bool = False
     execution_performed: bool = False
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
