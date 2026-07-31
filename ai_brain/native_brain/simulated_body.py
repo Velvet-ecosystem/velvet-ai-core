@@ -90,6 +90,10 @@ class FaultProfile:
     Dotted field paths may target nested payload mappings. Noise is additive and
     bounded by the configured amplitude. Impossible values are applied last so
     they remain deliberately impossible.
+
+    Disconnect/recovery attempts are one-based. For example, disconnecting on
+    attempt 2 and recovering on attempt 4 drops attempts 2 and 3, then resumes
+    normal emission on attempt 4.
     """
 
     delay_seconds: float = 0.0
@@ -97,6 +101,12 @@ class FaultProfile:
     stale_by_seconds: float = 0.0
     noise: Mapping[str, float] = field(default_factory=dict)
     impossible_values: Mapping[str, Any] = field(default_factory=dict)
+    low_voltage: Mapping[str, float] = field(default_factory=dict)
+    degraded_confidence: Mapping[str, float] = field(default_factory=dict)
+    malformed_payload_enabled: bool = False
+    malformed_payload: Any = None
+    disconnect_on_attempt: Optional[int] = None
+    recover_on_attempt: Optional[int] = None
     seed: Optional[int] = None
 
     def __post_init__(self) -> None:
@@ -106,13 +116,28 @@ class FaultProfile:
             raise ValueError("dropout_rate must be between 0.0 and 1.0")
         if self.stale_by_seconds < 0:
             raise ValueError("stale_by_seconds cannot be negative")
-        for path, amplitude in self.noise.items():
-            if not isinstance(path, str) or not path.strip():
-                raise ValueError("noise paths must be non-empty strings")
-            if isinstance(amplitude, bool) or not isinstance(amplitude, (int, float)):
-                raise ValueError("noise amplitudes must be numeric")
-            if amplitude < 0:
-                raise ValueError("noise amplitudes cannot be negative")
+
+        _validate_numeric_paths("noise", self.noise, minimum=0.0)
+        _validate_numeric_paths("low_voltage", self.low_voltage)
+        _validate_numeric_paths(
+            "degraded_confidence",
+            self.degraded_confidence,
+            minimum=0.0,
+            maximum=1.0,
+        )
+
+        if self.disconnect_on_attempt is not None:
+            if int(self.disconnect_on_attempt) < 1:
+                raise ValueError("disconnect_on_attempt must be at least 1")
+        if self.recover_on_attempt is not None:
+            if self.disconnect_on_attempt is None:
+                raise ValueError(
+                    "recover_on_attempt requires disconnect_on_attempt"
+                )
+            if int(self.recover_on_attempt) <= int(self.disconnect_on_attempt):
+                raise ValueError(
+                    "recover_on_attempt must be after disconnect_on_attempt"
+                )
 
 
 @dataclass(frozen=True)
@@ -199,6 +224,7 @@ class FakeOrganAdapter:
         self._clock = clock or _utc_now
         self._sleeper = sleeper or sleep
         self._rng = rng or Random(self._faults.seed)
+        self._attempt_count = 0
 
     @classmethod
     def mirror(
@@ -222,6 +248,22 @@ class FakeOrganAdapter:
         )
 
     def emit(self) -> OrganEmission:
+        self._attempt_count += 1
+        attempt = self._attempt_count
+
+        if _attempt_is_disconnected(self._faults, attempt):
+            return OrganEmission(
+                contract=self.contract,
+                origin="simulation",
+                record=None,
+                reasons=("fault injection: sudden disconnect",),
+            )
+
+        recovered_this_attempt = (
+            self._faults.recover_on_attempt is not None
+            and attempt == self._faults.recover_on_attempt
+        )
+
         if self._faults.delay_seconds:
             self._sleeper(self._faults.delay_seconds)
 
@@ -257,6 +299,14 @@ class FakeOrganAdapter:
             _set_path(mutated, path, value + delta)
             reasons.append("fault injection: noise:%s" % path)
 
+        for path, value in self._faults.low_voltage.items():
+            _set_path(mutated, path, value)
+            reasons.append("fault injection: low voltage:%s" % path)
+
+        for path, value in self._faults.degraded_confidence.items():
+            _set_path(mutated, path, value)
+            reasons.append("fault injection: degraded confidence:%s" % path)
+
         for path, value in self._faults.impossible_values.items():
             _set_path(mutated, path, value)
             reasons.append("fault injection: impossible:%s" % path)
@@ -268,11 +318,24 @@ class FakeOrganAdapter:
             reasons.append("fault injection: stale timestamp")
         if self._faults.delay_seconds:
             reasons.append("fault injection: delay")
+        if recovered_this_attempt:
+            reasons.append("fault injection: recovery")
+
+        record = self.contract.event_record(
+            mutated,
+            observed_at,
+            "simulation",
+        )
+        if self._faults.malformed_payload_enabled:
+            malformed_record = dict(record)
+            malformed_record["payload"] = self._faults.malformed_payload
+            record = malformed_record
+            reasons.append("fault injection: malformed payload")
 
         return OrganEmission(
             contract=self.contract,
             origin="simulation",
-            record=self.contract.event_record(mutated, observed_at, "simulation"),
+            record=record,
             reasons=tuple(reasons),
         )
 
@@ -343,6 +406,31 @@ class BodyPracticeSkeleton:
 
 def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _attempt_is_disconnected(faults: FaultProfile, attempt: int) -> bool:
+    disconnect = faults.disconnect_on_attempt
+    if disconnect is None or attempt < disconnect:
+        return False
+    recover = faults.recover_on_attempt
+    return recover is None or attempt < recover
+
+
+def _validate_numeric_paths(
+    label: str,
+    values: Mapping[str, float],
+    minimum: Optional[float] = None,
+    maximum: Optional[float] = None,
+) -> None:
+    for path, value in values.items():
+        if not isinstance(path, str) or not path.strip():
+            raise ValueError("%s paths must be non-empty strings" % label)
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError("%s values must be numeric" % label)
+        if minimum is not None and value < minimum:
+            raise ValueError("%s values cannot be below %s" % (label, minimum))
+        if maximum is not None and value > maximum:
+            raise ValueError("%s values cannot exceed %s" % (label, maximum))
 
 
 def _deep_copy_mapping(value: Mapping[str, Any]) -> MutableMapping[str, Any]:
