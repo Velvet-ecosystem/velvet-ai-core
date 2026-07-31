@@ -57,7 +57,14 @@ class EventProtocolAdapter:
 
         metadata = {
             key: record[key]
-            for key in ("event_id", "family", "schema_version", "timestamp")
+            for key in (
+                "event_id",
+                "family",
+                "schema_version",
+                "timestamp",
+                "origin",
+                "organ_name",
+            )
             if key in record
         }
 

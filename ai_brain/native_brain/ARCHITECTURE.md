@@ -129,6 +129,18 @@ An explicit immutable profile records urgency, consequence, confidence, cost of 
 
 The default profile remains routine and observational. Higher recommendations require explicit bounded inputs and produce rationale in the decision receipt.
 
+### Simulated-body practice skeleton
+
+Each physical organ declares a stable `OrganContract` containing its organ name, Event Protocol event type, source, family, and schema version.
+
+A `HardwareOrganAdapter` and its mirrored `FakeOrganAdapter` share that exact contract. The fake adapter may inject bounded delay, numeric noise, dropout, impossible values, and stale timestamps. Nested payload fields use dotted paths so the fault target is explicit and reviewable.
+
+Both adapter kinds produce the same Event Protocol record shape. `BodyPracticeSkeleton` accepts either adapter and sends successful emissions through the same `process_protocol_event()` method and the same receipt callback. A dropped sample produces no event and no receipt.
+
+Simulation provenance is preserved as `origin` and `organ_name` metadata. Provenance may inform interpretation and test assertions, but it does not grant authority, skip validation, create a separate receipt lane, or allow simulated evidence to masquerade as physical evidence.
+
+Impossible values remain subject to ordinary Event Protocol rules. A fake payload that attempts to inject authority-bearing fields is rejected by the same boundary as hardware input.
+
 ## Authority boundary
 
 The Native Brain may recommend.
@@ -145,6 +157,8 @@ Fusion and freshness may improve evidence quality.
 
 Consequence evaluation may raise recommendation severity.
 
+The practice skeleton may inject faults and record outcomes.
+
 Runtime may coordinate delivery. Court authorizes. Capability-bound organs execute only after authorization.
 
 ## Delivered foundation sequence
@@ -158,6 +172,7 @@ Runtime may coordinate delivery. Court authorizes. Capability-bound organs execu
 7. Evidence freshness and uncertainty decay
 8. Consequence-aware evaluation and cost of being wrong
 9. Doctrine of Silence and attention arbitration
+10. Simulated-body practice skeleton and hardware-equivalent fault injection
 
 ## Current non-goals
 
@@ -168,5 +183,6 @@ Runtime may coordinate delivery. Court authorizes. Capability-bound organs execu
 - no prediction
 - no receipt mutation or historical rewriting
 - no network dependency
-- no CAN, Qt, or hardware imports
+- no CAN, Qt, or hardware-library imports
 - no authority bypass
+- no simulation-only authority, event, or receipt lane
