@@ -32,7 +32,21 @@ Receipt
       Learning Proposal
 ```
 
-Around that spine, bounded subsystems provide Event Protocol normalization, Unified-Organ reasoning coordination, evidence fusion, evidence freshness, consequence-aware evaluation, and the Doctrine of Silence.
+Around that spine, bounded subsystems provide Event Protocol normalization, Unified-Organ reasoning coordination, evidence fusion, evidence freshness, consequence-aware evaluation, the Doctrine of Silence, and a contract-driven simulated body.
+
+## Practice skeleton
+
+Every physical organ can declare one `OrganContract` and use it with both a `HardwareOrganAdapter` and a `FakeOrganAdapter`. The fake twin can inject:
+
+- delay
+- bounded numeric noise
+- dropout
+- impossible values
+- stale timestamps
+
+`BodyPracticeSkeleton` accepts either adapter through the same interface. Both successful emissions enter `NativeBrain.process_protocol_event()` and leave through the same receipt callback. Simulation keeps explicit `origin` and `organ_name` provenance inside Event Protocol metadata, but it receives no separate authority, execution, or learning lane.
+
+The result is a practice skeleton: Velvet can exercise timing, evidence quality, dropout, contradiction, and receipt behavior before real hardware is under load.
 
 ## Foundation posture
 
@@ -44,16 +58,20 @@ Around that spine, bounded subsystems provide Event Protocol normalization, Unif
 - confidence decay for aging evidence
 - separate costs for false dismissal and false escalation
 - silence, defer, present, and interrupt attention dispositions
+- hardware-equivalent fake organ contracts
+- bounded delay, noise, dropout, impossible-value, and stale-time injection
+- one Event Protocol path for simulation and hardware
+- one receipt callback path for simulation and hardware
 - no direct notification delivery
 - no prediction
 - no network dependency
-- no CAN, Qt, or hardware imports
+- no CAN, Qt, or hardware-library imports
 - no autonomous physical control
 
 ## Authority boundary
 
 The Native Brain may recommend. Attention arbitration may request silence, waiting, presentation, or interruption. Runtime may coordinate delivery. Court authorizes. Capability-bound organs execute only after authorization.
 
-An event cannot declare its own authority or demand interruption. Agreement, freshness, confidence, owner presence, urgency, severe consequence, or an interrupt disposition may strengthen attention, but none unlock execution.
+An event cannot declare its own authority or demand interruption. Agreement, freshness, confidence, owner presence, urgency, severe consequence, an interrupt disposition, or simulated-body provenance may strengthen interpretation, but none unlock execution.
 
-See `ARCHITECTURE.md` for the completed nine-part foundation sequence and module responsibilities. See `DOCTRINE_OF_SILENCE.md` for interruption and deferral rules.
+See `ARCHITECTURE.md` for the completed foundation sequence and module responsibilities. See `DOCTRINE_OF_SILENCE.md` for interruption and deferral rules.
