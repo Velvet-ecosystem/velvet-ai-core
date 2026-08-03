@@ -9,17 +9,35 @@ from .vehicle_interface import (
     VehicleInterfaceAuthority,
     VehicleInterfaceContract,
 )
+from .world_model import (
+    EntityIdentity,
+    EntityLifecycle,
+    IdentityEvidence,
+    IdentityStatus,
+    SpatialRelation,
+    SpatialRelationType,
+    TemporalState,
+    WorldEntity,
+)
 
 __all__ = [
     "CapabilityAuthority",
     "CapabilityOwnership",
+    "EntityIdentity",
+    "EntityLifecycle",
     "HealthEvent",
     "HealthEventType",
     "HealthSeverity",
     "HealthState",
+    "IdentityEvidence",
+    "IdentityStatus",
     "NodeCapabilityManifest",
     "SensorPacket",
     "SourceClock",
+    "SpatialRelation",
+    "SpatialRelationType",
+    "TemporalState",
     "VehicleInterfaceAuthority",
     "VehicleInterfaceContract",
+    "WorldEntity",
 ]
