@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+import unittest
 from dataclasses import replace
-
-import pytest
 
 from velvet.core.recognition_adapters import (
     AdapterContext,
@@ -69,7 +68,7 @@ class FailedCamera(CameraRecognitionAdapter):
         )
 
 
-def context() -> AdapterContext:
+def recognition_context() -> AdapterContext:
     return AdapterContext(
         candidate_entity_id="person.mister",
         observed_at=100.0,
@@ -79,68 +78,69 @@ def context() -> AdapterContext:
     )
 
 
-def test_camera_adapter_normalizes_hardware_reading() -> None:
-    observation = FakeCamera("camera.cabin", "node-vision").observe(context())
+class RecognitionAdapterTests(unittest.TestCase):
+    def test_camera_adapter_normalizes_hardware_reading(self) -> None:
+        observation = FakeCamera("camera.cabin", "node-vision").observe(
+            recognition_context()
+        )
+        self.assertEqual(observation.modality, RecognitionModality.IMAGE)
+        self.assertEqual(observation.candidate_entity_id, "person.mister")
+        self.assertEqual(observation.source_module_id, "camera.cabin")
+        self.assertEqual(observation.source_node_id, "node-vision")
+        self.assertEqual(observation.confidence, 0.91)
+        self.assertEqual(observation.details["adapter_health"], "ONLINE")
+        self.assertFalse(observation.authority_granted)
+        self.assertFalse(observation.execution_performed)
 
-    assert observation.modality == RecognitionModality.IMAGE
-    assert observation.candidate_entity_id == "person.mister"
-    assert observation.source_module_id == "camera.cabin"
-    assert observation.source_node_id == "node-vision"
-    assert observation.confidence == 0.91
-    assert observation.details["adapter_health"] == "ONLINE"
-    assert observation.authority_granted is False
-    assert observation.execution_performed is False
+    def test_degraded_voice_reading_remains_usable_and_visible(self) -> None:
+        observation = FakeVoice("microphone.cabin", "node-audio").observe(
+            recognition_context()
+        )
+        self.assertEqual(observation.modality, RecognitionModality.VOICE)
+        self.assertEqual(observation.details["adapter_health"], "DEGRADED")
+        self.assertEqual(observation.confidence, 0.84)
+
+    def test_simulated_trusted_nfc_remains_simulated(self) -> None:
+        observation = FakeNfc(simulated=True).observe(recognition_context())
+        self.assertTrue(observation.trusted_credential)
+        self.assertTrue(observation.simulated)
+        self.assertEqual(observation.modality, RecognitionModality.NFC)
+
+    def test_real_trusted_nfc_remains_distinct_from_simulated(self) -> None:
+        observation = FakeNfc(simulated=False).observe(recognition_context())
+        self.assertTrue(observation.trusted_credential)
+        self.assertFalse(observation.simulated)
+
+    def test_seat_adapter_preserves_body_position(self) -> None:
+        observation = FakeSeat("seat.driver", "node-seat").observe(
+            recognition_context()
+        )
+        self.assertEqual(observation.modality, RecognitionModality.BEHAVIOR)
+        self.assertEqual(observation.body_position, "driver-seat")
+        self.assertEqual(observation.location_id, "driver-zone")
+
+    def test_failed_adapter_does_not_emit_recognition_evidence(self) -> None:
+        adapter = FailedCamera("camera.failed", "node-vision")
+        with self.assertRaisesRegex(RuntimeError, "adapter reading failed"):
+            adapter.observe(recognition_context())
+
+    def test_invalid_adapter_context_and_readings_are_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            AdapterContext(candidate_entity_id="", observed_at=1.0)
+        with self.assertRaises(ValueError):
+            AdapterReading(confidence=1.5, receipt_id="receipt")
+        with self.assertRaises(ValueError):
+            AdapterReading(confidence=0.5, receipt_id="")
+
+    def test_observation_cannot_be_rewritten_to_claim_authority(self) -> None:
+        observation = FakeCamera("camera.cabin", "node-vision").observe(
+            recognition_context()
+        )
+        with self.assertRaisesRegex(
+            ValueError, "cannot claim authority or execution"
+        ):
+            replace(observation, authority_granted=True)
 
 
-def test_degraded_voice_reading_remains_usable_and_visible() -> None:
-    observation = FakeVoice("microphone.cabin", "node-audio").observe(context())
-
-    assert observation.modality == RecognitionModality.VOICE
-    assert observation.details["adapter_health"] == "DEGRADED"
-    assert observation.confidence == 0.84
-
-
-def test_simulated_trusted_nfc_remains_simulated() -> None:
-    observation = FakeNfc(simulated=True).observe(context())
-
-    assert observation.trusted_credential is True
-    assert observation.simulated is True
-    assert observation.modality == RecognitionModality.NFC
-
-
-def test_real_trusted_nfc_remains_distinct_from_simulated() -> None:
-    observation = FakeNfc(simulated=False).observe(context())
-
-    assert observation.trusted_credential is True
-    assert observation.simulated is False
-
-
-def test_seat_adapter_preserves_body_position() -> None:
-    observation = FakeSeat("seat.driver", "node-seat").observe(context())
-
-    assert observation.modality == RecognitionModality.BEHAVIOR
-    assert observation.body_position == "driver-seat"
-    assert observation.location_id == "driver-zone"
-
-
-def test_failed_adapter_does_not_emit_recognition_evidence() -> None:
-    adapter = FailedCamera("camera.failed", "node-vision")
-
-    with pytest.raises(RuntimeError, match="adapter reading failed"):
-        adapter.observe(context())
-
-
-def test_invalid_adapter_context_and_readings_are_rejected() -> None:
-    with pytest.raises(ValueError):
-        AdapterContext(candidate_entity_id="", observed_at=1.0)
-    with pytest.raises(ValueError):
-        AdapterReading(confidence=1.5, receipt_id="receipt")
-    with pytest.raises(ValueError):
-        AdapterReading(confidence=0.5, receipt_id="")
-
-
-def test_observation_cannot_be_rewritten_to_claim_authority() -> None:
-    observation = FakeCamera("camera.cabin", "node-vision").observe(context())
-
-    with pytest.raises(ValueError, match="cannot claim authority or execution"):
-        replace(observation, authority_granted=True)
+if __name__ == "__main__":
+    unittest.main()
