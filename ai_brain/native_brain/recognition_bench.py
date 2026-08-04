@@ -8,7 +8,7 @@ and cannot authorize capabilities or execute physical action.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Mapping, Tuple
+from typing import Any, Mapping, Optional, Tuple
 from uuid import uuid4
 
 from velvet.core.identity_transitions import (
@@ -48,6 +48,7 @@ class SimulatedRecognitionScenario:
     include_nfc: bool = True
     include_seat: bool = True
     trusted_nfc: bool = True
+    observations_simulated: bool = True
     conflicting_seat_position: bool = False
 
     def __post_init__(self) -> None:
@@ -161,7 +162,7 @@ class SimulatedRecognitionAdapters:
         confidence: float,
         details: Mapping[str, Any],
         trusted_credential: bool = False,
-        body_position: str | None = None,
+        body_position: Optional[str] = None,
     ) -> RecognitionObservation:
         return RecognitionObservation(
             observation_id=str(uuid4()),
@@ -178,7 +179,7 @@ class SimulatedRecognitionAdapters:
             raw_reference="sim://%s" % source_module_id,
             details=dict(details),
             trusted_credential=trusted_credential,
-            simulated=False,
+            simulated=scenario.observations_simulated,
         )
 
 
@@ -187,10 +188,10 @@ class RecognitionBenchPipeline:
 
     def __init__(
         self,
-        fusion: RecognitionEvidenceFusion | None = None,
-        identity_engine: IdentityTransitionEngine | None = None,
-        event_bridge: WorldEventBridge | None = None,
-        context_projector: NativeBrainWorldContextProjector | None = None,
+        fusion: Optional[RecognitionEvidenceFusion] = None,
+        identity_engine: Optional[IdentityTransitionEngine] = None,
+        event_bridge: Optional[WorldEventBridge] = None,
+        context_projector: Optional[NativeBrainWorldContextProjector] = None,
     ) -> None:
         self._fusion = fusion or RecognitionEvidenceFusion()
         self._identity_engine = identity_engine or IdentityTransitionEngine()
