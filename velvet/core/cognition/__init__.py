@@ -1,6 +1,15 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Non-authoritative cognitive event, prediction, and interruption contracts."""
+"""Non-authoritative cognitive event, prediction, interruption, and episode contracts."""
 
+from .episode_consolidation import (
+    EPISODE_PROPOSED,
+    ClosedEventContext,
+    EpisodeConsolidator,
+    EpisodeEmission,
+    EpisodeProposal,
+    RetentionClass,
+    RetentionPolicy,
+)
 from .event_workspace import (
     BOUNDARY_PROPOSED,
     COGNITIVE_EVENT_CONTRACT,
@@ -64,6 +73,7 @@ __all__ = [
     "ACTION_TRACKING_FINISHED",
     "INTERRUPT_CANDIDATE",
     "INTERRUPT_ACCEPTED",
+    "EPISODE_PROPOSED",
     "CognitiveMode",
     "LifecycleState",
     "BoundaryType",
@@ -73,6 +83,7 @@ __all__ = [
     "PredictionErrorClass",
     "ActionTrackingState",
     "SalienceDisposition",
+    "RetentionClass",
     "WorkspaceObservation",
     "WorkspaceSnapshot",
     "WorkspaceEmission",
@@ -93,4 +104,9 @@ __all__ = [
     "WorkspaceInterruptApplication",
     "SalienceAccumulator",
     "apply_accepted_interrupt",
+    "ClosedEventContext",
+    "RetentionPolicy",
+    "EpisodeEmission",
+    "EpisodeProposal",
+    "EpisodeConsolidator",
 ]
