@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Non-authoritative cognitive event workspace contracts."""
+"""Non-authoritative cognitive event, prediction, and outcome contracts."""
 
 from .event_workspace import (
     BOUNDARY_PROPOSED,
@@ -20,6 +20,23 @@ from .event_workspace import (
     WorkspaceObservation,
     WorkspaceSnapshot,
 )
+from .prediction_outcomes import (
+    ACTION_TRACKING_FINISHED,
+    ACTION_TRACKING_STARTED,
+    PREDICTION_CREATED,
+    PREDICTION_ERROR,
+    PREDICTION_RESOLVED,
+    ActionOutcomeTracker,
+    ActionTrackingRecord,
+    ActionTrackingState,
+    CognitiveEmission,
+    PredictionErrorClass,
+    PredictionOutcome,
+    PredictionRecord,
+    PredictionStatus,
+    PredictionTracker,
+)
+from .workspace_context import CognitiveWorkspaceContext
 
 __all__ = [
     "COGNITIVE_EVENT_CONTRACT",
@@ -28,15 +45,30 @@ __all__ = [
     "EVENT_UPDATED",
     "BOUNDARY_PROPOSED",
     "EVENT_CLOSED",
+    "PREDICTION_CREATED",
+    "PREDICTION_RESOLVED",
+    "PREDICTION_ERROR",
+    "ACTION_TRACKING_STARTED",
+    "ACTION_TRACKING_FINISHED",
     "CognitiveMode",
     "LifecycleState",
     "BoundaryType",
     "ObservationRole",
     "AssociationDisposition",
+    "PredictionStatus",
+    "PredictionErrorClass",
+    "ActionTrackingState",
     "WorkspaceObservation",
     "WorkspaceSnapshot",
     "WorkspaceEmission",
     "AssociationResult",
     "BoundaryProposal",
     "CurrentEventWorkspace",
+    "CognitiveWorkspaceContext",
+    "CognitiveEmission",
+    "PredictionRecord",
+    "PredictionOutcome",
+    "PredictionTracker",
+    "ActionTrackingRecord",
+    "ActionOutcomeTracker",
 ]
