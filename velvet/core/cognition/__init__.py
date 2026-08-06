@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Non-authoritative cognitive event, prediction, and outcome contracts."""
+"""Non-authoritative cognitive event, prediction, and interruption contracts."""
 
 from .event_workspace import (
     BOUNDARY_PROPOSED,
@@ -36,6 +36,18 @@ from .prediction_outcomes import (
     PredictionStatus,
     PredictionTracker,
 )
+from .salience_interruption import (
+    INTERRUPT_ACCEPTED,
+    INTERRUPT_CANDIDATE,
+    InterruptEmission,
+    InterruptRecord,
+    SalienceAccumulator,
+    SalienceDisposition,
+    SalienceEvaluation,
+    SalienceSignal,
+    WorkspaceInterruptApplication,
+    apply_accepted_interrupt,
+)
 from .workspace_context import CognitiveWorkspaceContext
 
 __all__ = [
@@ -50,6 +62,8 @@ __all__ = [
     "PREDICTION_ERROR",
     "ACTION_TRACKING_STARTED",
     "ACTION_TRACKING_FINISHED",
+    "INTERRUPT_CANDIDATE",
+    "INTERRUPT_ACCEPTED",
     "CognitiveMode",
     "LifecycleState",
     "BoundaryType",
@@ -58,6 +72,7 @@ __all__ = [
     "PredictionStatus",
     "PredictionErrorClass",
     "ActionTrackingState",
+    "SalienceDisposition",
     "WorkspaceObservation",
     "WorkspaceSnapshot",
     "WorkspaceEmission",
@@ -71,4 +86,11 @@ __all__ = [
     "PredictionTracker",
     "ActionTrackingRecord",
     "ActionOutcomeTracker",
+    "SalienceSignal",
+    "InterruptEmission",
+    "InterruptRecord",
+    "SalienceEvaluation",
+    "WorkspaceInterruptApplication",
+    "SalienceAccumulator",
+    "apply_accepted_interrupt",
 ]
