@@ -695,7 +695,10 @@ def _transport_payload(payload: Mapping[str, Any]) -> None:
     for key, expected in _FLAGS.items():
         if payload.get(key) != expected:
             raise ValueError("cognitive payload %s must be %r" % (key, expected))
-    permitted = set(_FLAGS)
+    permitted = set(_FLAGS) | {"execution_performed", "actuation_performed"}
+    for key in ("execution_performed", "actuation_performed"):
+        if key in payload and payload.get(key) is not False:
+            raise ValueError("cognitive payload %s must be False" % key)
     nested = {k: v for k, v in payload.items() if k not in permitted}
     _reject(nested, "cognitive payload")
 
