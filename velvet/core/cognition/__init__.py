@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Non-authoritative cognitive event, prediction, interruption, episode, and social contracts."""
+"""Non-authoritative cognitive event, social, and plasticity contracts."""
 
 from .episode_consolidation import (
     EPISODE_PROPOSED,
@@ -28,6 +28,16 @@ from .event_workspace import (
     WorkspaceEmission,
     WorkspaceObservation,
     WorkspaceSnapshot,
+)
+from .governed_plasticity import (
+    ChangeDelta,
+    GovernedPlasticityRegistry,
+    LearningComponentContract,
+    LearningEvidence,
+    PlasticityDecision,
+    PlasticityDisposition,
+    PlasticityPosture,
+    PlasticityProposal,
 )
 from .operational_modulators import (
     MODULATOR_NAMES,
@@ -100,6 +110,8 @@ __all__ = [
     "SalienceDisposition",
     "RetentionClass",
     "TurnPosture",
+    "PlasticityPosture",
+    "PlasticityDisposition",
     "WorkspaceObservation",
     "WorkspaceSnapshot",
     "WorkspaceEmission",
@@ -131,4 +143,10 @@ __all__ = [
     "TurnSignals",
     "TurnDecision",
     "SocialTurnCoordinator",
+    "LearningComponentContract",
+    "LearningEvidence",
+    "ChangeDelta",
+    "PlasticityProposal",
+    "PlasticityDecision",
+    "GovernedPlasticityRegistry",
 ]
