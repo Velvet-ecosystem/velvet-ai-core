@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Non-authoritative cognitive event, prediction, interruption, and episode contracts."""
+"""Non-authoritative cognitive event, prediction, interruption, episode, and social contracts."""
 
 from .episode_consolidation import (
     EPISODE_PROPOSED,
@@ -29,6 +29,13 @@ from .event_workspace import (
     WorkspaceObservation,
     WorkspaceSnapshot,
 )
+from .operational_modulators import (
+    MODULATOR_NAMES,
+    MODULATORS_SNAPSHOTTED,
+    ModulatorSnapshot,
+    ModulatorUpdate,
+    OperationalModulatorRegistry,
+)
 from .prediction_outcomes import (
     ACTION_TRACKING_FINISHED,
     ACTION_TRACKING_STARTED,
@@ -57,6 +64,12 @@ from .salience_interruption import (
     WorkspaceInterruptApplication,
     apply_accepted_interrupt,
 )
+from .social_turn_taking import (
+    SocialTurnCoordinator,
+    TurnDecision,
+    TurnPosture,
+    TurnSignals,
+)
 from .workspace_context import CognitiveWorkspaceContext
 
 __all__ = [
@@ -74,6 +87,8 @@ __all__ = [
     "INTERRUPT_CANDIDATE",
     "INTERRUPT_ACCEPTED",
     "EPISODE_PROPOSED",
+    "MODULATORS_SNAPSHOTTED",
+    "MODULATOR_NAMES",
     "CognitiveMode",
     "LifecycleState",
     "BoundaryType",
@@ -84,6 +99,7 @@ __all__ = [
     "ActionTrackingState",
     "SalienceDisposition",
     "RetentionClass",
+    "TurnPosture",
     "WorkspaceObservation",
     "WorkspaceSnapshot",
     "WorkspaceEmission",
@@ -109,4 +125,10 @@ __all__ = [
     "EpisodeEmission",
     "EpisodeProposal",
     "EpisodeConsolidator",
+    "ModulatorUpdate",
+    "ModulatorSnapshot",
+    "OperationalModulatorRegistry",
+    "TurnSignals",
+    "TurnDecision",
+    "SocialTurnCoordinator",
 ]
