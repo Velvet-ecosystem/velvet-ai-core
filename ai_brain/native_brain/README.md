@@ -1,5 +1,7 @@
 # Native Brain
 
+> **Generation status:** this `ai_brain/native_brain/` tree is a tested legacy deterministic foundation and recovery source. New production-facing cognition and Learning Mode work belongs in `velvet/core/native_brain/` together with `velvet/core/cognition/`. Do not create new cross-generation imports as a migration shortcut. See `docs/native_brain/native_brain_generation_ownership.md`.
+
 Velvet's Native Brain is a deterministic, local reasoning spine that converts incoming events into explainable recommendations without owning physical authority.
 
 ## Core laws
