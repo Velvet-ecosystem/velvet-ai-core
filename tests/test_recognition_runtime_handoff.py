@@ -150,7 +150,7 @@ def test_adapter_identity_must_match_binding():
     assert "does not match approved binding" in events[0].reason
 
 
-def test_adapter_modality_must_match_binding():
+def test_adapter_type_must_match_binding():
     item = binding()
     handoff = RecognitionRuntimeHandoff(
         registry_with(item),
@@ -159,7 +159,7 @@ def test_adapter_modality_must_match_binding():
 
     events = handoff.bind_active()
     assert events[0].health == HandoffHealth.ADAPTER_UNAVAILABLE
-    assert "modality" in events[0].reason
+    assert "adapter type" in events[0].reason
 
 
 def test_unbind_removes_runtime_adapter():
