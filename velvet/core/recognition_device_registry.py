@@ -99,7 +99,8 @@ class RecognitionDeviceBinding:
 
         The registry describes which adapter family Runtime may provide. It does
         not instantiate hardware adapters because concrete readers are owned by
-        the Runtime/hardware integration edge.
+        the Runtime/hardware integration edge. This separation also keeps device
+        activation distinct from opening or reading physical hardware.
         """
         return _ADAPTER_TYPES[self.adapter_kind]
 
