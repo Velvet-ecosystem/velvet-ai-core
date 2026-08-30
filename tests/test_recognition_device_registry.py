@@ -41,15 +41,17 @@ def binding(
 
 
 class RecognitionDeviceRegistryTests(unittest.TestCase):
-    def test_declared_binding_requires_explicit_activation_before_adapter_creation(self):
+    def test_declared_binding_requires_explicit_activation_before_runtime_use(self):
         item = binding()
-        with self.assertRaisesRegex(RuntimeError, "only active bindings"):
-            item.create_adapter()
+        self.assertIs(item.adapter_type, CameraRecognitionAdapter)
 
-        active = item.with_state(DeviceBindingState.ACTIVE, "receipt.activate.1")
-        adapter = active.create_adapter()
-        self.assertIsInstance(adapter, CameraRecognitionAdapter)
-        self.assertEqual(adapter.module_id, "camera.cabin.front")
+        registry = RecognitionDeviceRegistry()
+        registry.register(item)
+        self.assertEqual(registry.active_adapter_types(), ())
+
+        registry.activate(item.binding_id, "receipt.activate.1")
+        active = registry.get(item.binding_id)
+        self.assertEqual(registry.active_adapter_types(), (CameraRecognitionAdapter,))
         self.assertFalse(active.authority_granted)
         self.assertFalse(active.execution_performed)
 
@@ -92,7 +94,7 @@ class RecognitionDeviceRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "cannot self-register"):
             registry.self_register({"device_id": "surprise"})
 
-    def test_active_registry_builds_correct_adapter_types_without_device_choice(self):
+    def test_active_registry_exposes_correct_adapter_contracts_without_device_choice(self):
         registry = RecognitionDeviceRegistry()
         definitions = (
             binding(),
@@ -119,13 +121,11 @@ class RecognitionDeviceRegistryTests(unittest.TestCase):
             registry.register(item)
             registry.activate(item.binding_id, "receipt.activate.%s" % item.binding_id)
 
-        adapters = registry.active_adapters()
-        self.assertTrue(any(isinstance(item, CameraRecognitionAdapter) for item in adapters))
-        self.assertTrue(any(isinstance(item, VoiceRecognitionAdapter) for item in adapters))
-        self.assertTrue(any(isinstance(item, NfcRecognitionAdapter) for item in adapters))
-        self.assertTrue(
-            any(isinstance(item, SeatPresenceRecognitionAdapter) for item in adapters)
-        )
+        adapter_types = registry.active_adapter_types()
+        self.assertIn(CameraRecognitionAdapter, adapter_types)
+        self.assertIn(VoiceRecognitionAdapter, adapter_types)
+        self.assertIn(NfcRecognitionAdapter, adapter_types)
+        self.assertIn(SeatPresenceRecognitionAdapter, adapter_types)
 
     def test_modality_filter_returns_only_active_matching_bindings(self):
         registry = RecognitionDeviceRegistry()
@@ -145,13 +145,13 @@ class RecognitionDeviceRegistryTests(unittest.TestCase):
         )
         self.assertEqual(registry.active_bindings(RecognitionModality.VOICE), ())
 
-    def test_suspended_binding_disappears_from_active_adapter_set(self):
+    def test_suspended_binding_disappears_from_active_adapter_contracts(self):
         registry = RecognitionDeviceRegistry()
         registry.register(binding())
         registry.activate("bind.camera", "receipt.activate.1")
-        self.assertEqual(len(registry.active_adapters()), 1)
+        self.assertEqual(len(registry.active_adapter_types()), 1)
         registry.suspend("bind.camera", "receipt.suspend.1")
-        self.assertEqual(registry.active_adapters(), ())
+        self.assertEqual(registry.active_adapter_types(), ())
         self.assertEqual(
             registry.get("bind.camera").state, DeviceBindingState.SUSPENDED
         )
