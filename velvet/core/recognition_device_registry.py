@@ -94,14 +94,18 @@ class RecognitionDeviceBinding:
             raise ValueError("device bindings cannot claim authority or execution")
 
     @property
-    def modality(self) -> RecognitionModality:
-        return _ADAPTER_TYPES[self.adapter_kind].modality
+    def adapter_type(self) -> Type[RecognitionAdapter]:
+        """Return the approved abstract adapter contract for this binding.
 
-    def create_adapter(self) -> RecognitionAdapter:
-        if self.state != DeviceBindingState.ACTIVE:
-            raise RuntimeError("only active bindings can create adapters")
-        adapter_type = _ADAPTER_TYPES[self.adapter_kind]
-        return adapter_type(self.module_id, self.node_id)
+        The registry describes which adapter family Runtime may provide. It does
+        not instantiate hardware adapters because concrete readers are owned by
+        the Runtime/hardware integration edge.
+        """
+        return _ADAPTER_TYPES[self.adapter_kind]
+
+    @property
+    def modality(self) -> RecognitionModality:
+        return self.adapter_type.modality
 
     def with_state(
         self,
@@ -209,12 +213,9 @@ class RecognitionDeviceRegistry:
             raise KeyError("device is not explicitly bound")
         return self.get(binding_id)
 
-    def active_adapters(self) -> Tuple[RecognitionAdapter, ...]:
-        return tuple(
-            binding.create_adapter()
-            for binding in self._bindings.values()
-            if binding.state == DeviceBindingState.ACTIVE
-        )
+    def active_adapter_types(self) -> Tuple[Type[RecognitionAdapter], ...]:
+        """Return approved adapter contracts without opening hardware."""
+        return tuple(binding.adapter_type for binding in self.active_bindings())
 
     def active_bindings(
         self,
