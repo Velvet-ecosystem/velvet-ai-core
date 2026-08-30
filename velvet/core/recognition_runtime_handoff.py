@@ -173,6 +173,8 @@ class RecognitionRuntimeHandoff:
         binding: RecognitionDeviceBinding,
         adapter: RecognitionAdapter,
     ) -> None:
+        if not isinstance(adapter, binding.adapter_type):
+            raise ValueError("adapter type does not match approved binding")
         if adapter.module_id != binding.module_id or adapter.node_id != binding.node_id:
             raise ValueError("adapter identity does not match approved binding")
         if adapter.modality != binding.modality:
