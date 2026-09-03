@@ -20,8 +20,11 @@ LANGUAGE_CONVERSATION_SCHEMA_VERSION = "0.1"
 CORE_CONVERSATION_MEANING_EVENT = "velvet.core.conversation.meaning"
 CORE_CONVERSATION_SCHEMA_VERSION = "0.1"
 MAX_TURN_CHARACTERS = 4096
+MAX_SYNTHESIS_SOURCES = 3
+MAX_SYNTHESIS_EVIDENCE_CHARACTERS = 240
 
 _ALLOWED_MODALITIES = frozenset({"text", "speech_transcript"})
+_ALLOWED_EVIDENCE_DISPOSITIONS = frozenset({"corroborated", "conflicted", "mixed"})
 
 
 class ConversationMeaningKind(str, Enum):
@@ -29,6 +32,7 @@ class ConversationMeaningKind(str, Enum):
 
     FACT = "fact"
     EVIDENCE = "evidence"
+    SYNTHESIS = "synthesis"
     UNAVAILABLE = "unavailable"
     ACKNOWLEDGE = "acknowledge"
     AUTHORITY_REQUIRED = "authority_required"
@@ -101,9 +105,10 @@ class GroundedConversationMeaning:
     """Verified structured meaning returned to Language for realization.
 
     ``FACT`` carries a verified scalar fact. ``EVIDENCE`` carries one bounded,
-    reference-only passage selected from an external evidence provider. The
-    latter is deliberately distinct so retrieval can never masquerade as body
-    truth or canonical memory. Language remains responsible for final wording.
+    reference-only passage. ``SYNTHESIS`` carries a bounded comparison of two
+    or three evidence sources plus an explicit disposition. None of these
+    structures create canonical memory, doctrine, authority, or execution.
+    Language remains responsible for final human wording.
     """
 
     response_kind: ConversationMeaningKind
@@ -112,6 +117,9 @@ class GroundedConversationMeaning:
     value: Any = None
     unit: Optional[str] = None
     source_label: Optional[str] = None
+    source_labels: Tuple[str, ...] = ()
+    evidence_values: Tuple[str, ...] = ()
+    evidence_disposition: Optional[str] = None
     qualifiers: Tuple[str, ...] = ()
     source_refs: Tuple[str, ...] = ()
     authority: str = "none"
@@ -132,6 +140,8 @@ class GroundedConversationMeaning:
             _require_text("unit", self.unit)
         if self.source_label is not None:
             _require_text("source_label", self.source_label)
+        _require_text_tuple("source_labels", self.source_labels)
+        _require_text_tuple("evidence_values", self.evidence_values)
         _require_text_tuple("qualifiers", self.qualifiers)
         _require_text_tuple("source_refs", self.source_refs)
         if self.authority != "none":
@@ -143,6 +153,7 @@ class GroundedConversationMeaning:
             if self.fact_id is None:
                 raise ValueError("fact response requires fact_id")
             _require_scalar("value", self.value)
+            self._reject_synthesis_fields()
         elif self.response_kind is ConversationMeaningKind.EVIDENCE:
             if self.fact_id is None:
                 raise ValueError("evidence response requires fact_id")
@@ -153,8 +164,35 @@ class GroundedConversationMeaning:
             _require_scalar("value", self.value)
             if not isinstance(self.value, str) or not self.value.strip():
                 raise ValueError("evidence response value must be non-empty text")
-        elif self.value is not None:
-            raise ValueError("non-fact conversation meaning cannot carry a value")
+            self._reject_synthesis_fields()
+        elif self.response_kind is ConversationMeaningKind.SYNTHESIS:
+            if self.fact_id is None:
+                raise ValueError("synthesis response requires fact_id")
+            if self.source_label is not None:
+                raise ValueError("synthesis response uses source_labels, not source_label")
+            if self.evidence_disposition not in _ALLOWED_EVIDENCE_DISPOSITIONS:
+                raise ValueError("unsupported evidence disposition")
+            if not 2 <= len(self.source_labels) <= MAX_SYNTHESIS_SOURCES:
+                raise ValueError("synthesis response requires two or three source labels")
+            if len(self.evidence_values) != len(self.source_labels):
+                raise ValueError("synthesis evidence values must align with source labels")
+            for value in self.evidence_values:
+                if len(value) > MAX_SYNTHESIS_EVIDENCE_CHARACTERS:
+                    raise ValueError("synthesis evidence value exceeds maximum length")
+            if not self.source_refs:
+                raise ValueError("synthesis response requires source refs")
+            if self.value is not None:
+                _require_scalar("value", self.value)
+                if isinstance(self.value, str) and not self.value.strip():
+                    raise ValueError("synthesis value cannot be blank")
+        else:
+            if self.value is not None:
+                raise ValueError("non-fact conversation meaning cannot carry a value")
+            self._reject_synthesis_fields()
+
+    def _reject_synthesis_fields(self) -> None:
+        if self.source_labels or self.evidence_values or self.evidence_disposition is not None:
+            raise ValueError("non-synthesis response cannot carry synthesis fields")
 
     def to_event(self, request: ConversationWorkRequest) -> Dict[str, Any]:
         """Serialize meaning for the Language organ without creating authority."""
@@ -170,6 +208,9 @@ class GroundedConversationMeaning:
             "value": self.value,
             "unit": self.unit,
             "source_label": self.source_label,
+            "source_labels": list(self.source_labels),
+            "evidence_values": list(self.evidence_values),
+            "evidence_disposition": self.evidence_disposition,
             "confidence": float(self.confidence),
             "qualifiers": list(self.qualifiers),
             "source_refs": list(self.source_refs),
