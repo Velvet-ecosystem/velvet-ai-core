@@ -22,6 +22,7 @@ LIBRARY_EVIDENCE_SCHEMA = "velvet.runtime.library_evidence.v1"
 MAX_LIBRARY_QUERY_CHARACTERS = 512
 MAX_LIBRARY_RESULTS = 20
 MAX_LIBRARY_EXCERPT_CHARACTERS = 480
+MAX_LIBRARY_SOURCE_LABEL_CHARACTERS = 160
 
 EvidenceProvider = Callable[[str, int], Mapping[str, Any]]
 
@@ -74,8 +75,6 @@ class LibraryEvidenceConversationResolver:
             document = self._evidence_provider(query, self._limit)
             records = validate_library_evidence(document)
         except Exception:
-            # A sleeping/offline librarian is a missing evidence source, not a
-            # reason to crash the shared conversation path or body grounding.
             return _unavailable("library-retrieval-unavailable")
 
         passage = _best_passage(records)
@@ -105,15 +104,13 @@ class LibraryEvidenceConversationResolver:
             confidence=1.0,
             fact_id="library.evidence",
             value=_bounded_excerpt(passage.snippet),
-            source_label=passage.title,
+            source_label=_bounded_source_label(passage.title),
             qualifiers=tuple(qualifiers),
             source_refs=tuple(refs),
         )
 
 
 def validate_library_evidence(document: Mapping[str, Any]) -> Tuple[LibraryEvidenceRecord, ...]:
-    """Validate Runtime's normalized Library retrieval posture."""
-
     if not isinstance(document, Mapping):
         raise TypeError("library evidence must be a mapping")
     if document.get("schema") != LIBRARY_EVIDENCE_SCHEMA:
@@ -129,7 +126,6 @@ def validate_library_evidence(document: Mapping[str, Any]) -> Tuple[LibraryEvide
         raise ValueError("library evidence results must be a list")
     if len(results) > MAX_LIBRARY_RESULTS:
         raise ValueError("library evidence result count exceeds resolver bound")
-
     return tuple(_record_from_mapping(item) for item in results)
 
 
@@ -171,8 +167,6 @@ def _record_from_mapping(item: Any) -> LibraryEvidenceRecord:
 
 
 def _best_passage(records: Sequence[LibraryEvidenceRecord]) -> Optional[LibraryEvidenceRecord]:
-    # Metadata-only hits can tell us that a document exists, but they are not a
-    # passage that Velvet can safely quote back as an answer.
     for record in records:
         if record.chunk_id and record.retrieval_method != "metadata" and record.snippet.strip():
             return record
@@ -183,8 +177,14 @@ def _bounded_excerpt(text: str) -> str:
     clean = " ".join(text.split())
     if len(clean) <= MAX_LIBRARY_EXCERPT_CHARACTERS:
         return clean
-    clipped = clean[: MAX_LIBRARY_EXCERPT_CHARACTERS - 1].rstrip()
-    return clipped + "…"
+    return clean[: MAX_LIBRARY_EXCERPT_CHARACTERS - 1].rstrip() + "…"
+
+
+def _bounded_source_label(text: str) -> str:
+    clean = " ".join(text.split())
+    if len(clean) <= MAX_LIBRARY_SOURCE_LABEL_CHARACTERS:
+        return clean
+    return clean[: MAX_LIBRARY_SOURCE_LABEL_CHARACTERS - 1].rstrip() + "…"
 
 
 def _required_text(item: Mapping[str, Any], key: str) -> str:
