@@ -70,8 +70,14 @@ class LibraryEvidenceConversationResolver:
         if len(query) > MAX_LIBRARY_QUERY_CHARACTERS:
             return _unavailable("library-query-too-long")
 
-        document = self._evidence_provider(query, self._limit)
-        records = validate_library_evidence(document)
+        try:
+            document = self._evidence_provider(query, self._limit)
+            records = validate_library_evidence(document)
+        except Exception:
+            # A sleeping/offline librarian is a missing evidence source, not a
+            # reason to crash the shared conversation path or body grounding.
+            return _unavailable("library-retrieval-unavailable")
+
         passage = _best_passage(records)
         if passage is None:
             return _unavailable("library-no-passage")
