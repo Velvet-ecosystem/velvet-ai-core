@@ -2,7 +2,7 @@
 """Grounded conversation ingress for Velvet Native Brain.
 
 This module accepts the normalized turn event emitted by ``velvet-language``
-and converts it into a read-only Core work request.  Core may attach verified
+and converts it into a read-only Core work request. Core may attach verified
 meaning through a resolver, but this boundary never grants Runtime authority,
 executes an action, or owns human-facing wording.
 """
@@ -28,6 +28,7 @@ class ConversationMeaningKind(str, Enum):
     """Structured meaning Core may return to the Language organ."""
 
     FACT = "fact"
+    EVIDENCE = "evidence"
     UNAVAILABLE = "unavailable"
     ACKNOWLEDGE = "acknowledge"
     AUTHORITY_REQUIRED = "authority_required"
@@ -99,9 +100,10 @@ class ConversationWorkRequest:
 class GroundedConversationMeaning:
     """Verified structured meaning returned to Language for realization.
 
-    ``value`` is deliberately bounded to a scalar.  Core supplies meaning and
-    evidence references; ``velvet-language`` remains responsible for turning
-    this structure into human wording.
+    ``FACT`` carries a verified scalar fact. ``EVIDENCE`` carries one bounded,
+    reference-only passage selected from an external evidence provider. The
+    latter is deliberately distinct so retrieval can never masquerade as body
+    truth or canonical memory. Language remains responsible for final wording.
     """
 
     response_kind: ConversationMeaningKind
@@ -109,6 +111,7 @@ class GroundedConversationMeaning:
     fact_id: Optional[str] = None
     value: Any = None
     unit: Optional[str] = None
+    source_label: Optional[str] = None
     qualifiers: Tuple[str, ...] = ()
     source_refs: Tuple[str, ...] = ()
     authority: str = "none"
@@ -127,16 +130,29 @@ class GroundedConversationMeaning:
             _require_text("fact_id", self.fact_id)
         if self.unit is not None:
             _require_text("unit", self.unit)
+        if self.source_label is not None:
+            _require_text("source_label", self.source_label)
         _require_text_tuple("qualifiers", self.qualifiers)
         _require_text_tuple("source_refs", self.source_refs)
         if self.authority != "none":
             raise ValueError("conversation meaning cannot carry authority")
         if self.grants_authority or self.grants_execution or self.grants_actuation:
             raise ValueError("conversation meaning cannot grant authority or execution")
+
         if self.response_kind is ConversationMeaningKind.FACT:
             if self.fact_id is None:
                 raise ValueError("fact response requires fact_id")
             _require_scalar("value", self.value)
+        elif self.response_kind is ConversationMeaningKind.EVIDENCE:
+            if self.fact_id is None:
+                raise ValueError("evidence response requires fact_id")
+            if self.source_label is None:
+                raise ValueError("evidence response requires source_label")
+            if not self.source_refs:
+                raise ValueError("evidence response requires source_refs")
+            _require_scalar("value", self.value)
+            if not isinstance(self.value, str) or not self.value.strip():
+                raise ValueError("evidence response value must be non-empty text")
         elif self.value is not None:
             raise ValueError("non-fact conversation meaning cannot carry a value")
 
@@ -153,6 +169,7 @@ class GroundedConversationMeaning:
             "fact_id": self.fact_id,
             "value": self.value,
             "unit": self.unit,
+            "source_label": self.source_label,
             "confidence": float(self.confidence),
             "qualifiers": list(self.qualifiers),
             "source_refs": list(self.source_refs),
@@ -167,9 +184,7 @@ class GroundedConversationMeaning:
 GroundedResolver = Callable[[ConversationWorkRequest], GroundedConversationMeaning]
 
 
-def conversation_work_request_from_event(
-    event: Mapping[str, Any],
-) -> ConversationWorkRequest:
+def conversation_work_request_from_event(event: Mapping[str, Any]) -> ConversationWorkRequest:
     """Validate a Language turn event and return Core's read-only request."""
 
     if not isinstance(event, Mapping):
@@ -202,9 +217,9 @@ def handle_conversation_turn(
 ) -> Dict[str, Any]:
     """Run the conversation ingress boundary and return structured meaning.
 
-    A resolver may consult verified Core/body/memory context.  Its result is
-    validated by ``GroundedConversationMeaning`` before serialization.  When no
-    resolver is bound, Core says only that grounded meaning is unavailable.
+    A resolver may consult verified Core/body/memory/evidence context. Its result
+    is validated by ``GroundedConversationMeaning`` before serialization. When
+    no resolver is bound, Core says only that grounded meaning is unavailable.
     """
 
     request = conversation_work_request_from_event(event)
