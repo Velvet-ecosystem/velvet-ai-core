@@ -10,6 +10,17 @@ from .attention import (
 from .brainstem import BrainstemDecision, BrainstemRouter
 from .cognition import CognitiveDecision, CognitiveOutcome, ObservationEnvelope
 from .conversation import render_no_llm_ghost_response
+from .conversation_ingress import (
+    CORE_CONVERSATION_MEANING_EVENT,
+    CORE_CONVERSATION_SCHEMA_VERSION,
+    LANGUAGE_CONVERSATION_SCHEMA_VERSION,
+    LANGUAGE_CONVERSATION_TURN_EVENT,
+    ConversationMeaningKind,
+    ConversationWorkRequest,
+    GroundedConversationMeaning,
+    conversation_work_request_from_event,
+    handle_conversation_turn,
+)
 from .curiosity import (
     CuriosityAssessment,
     CuriosityContext,
@@ -102,6 +113,8 @@ __all__ = [
     "AttentionEngine",
     "BrainstemDecision",
     "BrainstemRouter",
+    "CORE_CONVERSATION_MEANING_EVENT",
+    "CORE_CONVERSATION_SCHEMA_VERSION",
     "CandidateMode",
     "CognitiveCycle",
     "CognitiveCycleResult",
@@ -109,6 +122,8 @@ __all__ = [
     "CognitiveKey",
     "CognitiveOutcome",
     "ConfidenceBand",
+    "ConversationMeaningKind",
+    "ConversationWorkRequest",
     "CuriosityAssessment",
     "CuriosityContext",
     "CuriosityDisposition",
@@ -125,6 +140,7 @@ __all__ = [
     "ExpectationDisposition",
     "ExpectationEngine",
     "ExpectationState",
+    "GroundedConversationMeaning",
     "HandmaidenStem",
     "IntegratedCognitiveCycle",
     "IntegratedCycleContext",
@@ -146,6 +162,8 @@ __all__ = [
     "JudgmentDisposition",
     "JudgmentEngine",
     "KeyState",
+    "LANGUAGE_CONVERSATION_SCHEMA_VERSION",
+    "LANGUAGE_CONVERSATION_TURN_EVENT",
     "LLMPolishRequest",
     "NativeBrainResult",
     "NativeBrainSafetyError",
@@ -180,6 +198,8 @@ __all__ = [
     "WorkPlacementProposal",
     "WorkRequirement",
     "authority_report",
+    "conversation_work_request_from_event",
+    "handle_conversation_turn",
     "render_no_llm_ghost_response",
     "run_native_brain_ghost_loop",
     "validate_no_authority_payload",
