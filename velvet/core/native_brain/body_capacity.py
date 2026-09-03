@@ -11,7 +11,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, replace
 from enum import Enum
-from typing import Dict, Iterable, Mapping, Sequence, Tuple
+from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from .distributed_body import (
     DistributedBodyPlanner,
@@ -102,9 +102,6 @@ class NodeResourceAdvertisement:
         ids = [item.resource_id for item in self.resources]
         if len(ids) != len(set(ids)):
             raise ValueError("resource ids must be unique per node advertisement")
-        if not self.body_verified or not self.continuity_verified:
-            # The value may still be carried for diagnostics, but consumers must reject it.
-            pass
         if self.authority != "none":
             raise ValueError("node resource advertisements cannot carry authority")
 
@@ -176,7 +173,7 @@ def build_body_capacity_snapshot(
     """Aggregate the newest verified advertisement for each node."""
 
     newest = _latest_verified_advertisements(advertisements)
-    buckets: Dict[Tuple[ResourceKind, str], list[ResourceAdvertisement]] = {}
+    buckets: Dict[Tuple[ResourceKind, str], List[ResourceAdvertisement]] = {}
     for advertisement in newest.values():
         for resource in advertisement.resources:
             if not resource.online:
@@ -237,7 +234,7 @@ def filter_nodes_for_resources(
 class ResourceAwareDistributedBodyPlanner:
     """Delegate to the existing planner after applying body-resource bounds."""
 
-    def __init__(self, planner: DistributedBodyPlanner | None = None) -> None:
+    def __init__(self, planner: Optional[DistributedBodyPlanner] = None) -> None:
         self._planner = planner or DistributedBodyPlanner()
 
     def propose(
