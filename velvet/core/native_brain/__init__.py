@@ -7,6 +7,11 @@ from .attention import (
     AttentionEngine,
     ObservationMaturity,
 )
+from .body_snapshot_conversation import (
+    BODY_STATE_SNAPSHOT_SCHEMA,
+    BodySnapshotConversationResolver,
+    validate_body_snapshot,
+)
 from .brainstem import BrainstemDecision, BrainstemRouter
 from .cognition import CognitiveDecision, CognitiveOutcome, ObservationEnvelope
 from .conversation import render_no_llm_ghost_response
@@ -111,6 +116,8 @@ __all__ = [
     "AttentionAssessment",
     "AttentionContext",
     "AttentionEngine",
+    "BODY_STATE_SNAPSHOT_SCHEMA",
+    "BodySnapshotConversationResolver",
     "BrainstemDecision",
     "BrainstemRouter",
     "CORE_CONVERSATION_MEANING_EVENT",
@@ -202,5 +209,6 @@ __all__ = [
     "handle_conversation_turn",
     "render_no_llm_ghost_response",
     "run_native_brain_ghost_loop",
+    "validate_body_snapshot",
     "validate_no_authority_payload",
 ]
