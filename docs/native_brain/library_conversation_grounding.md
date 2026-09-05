@@ -15,8 +15,8 @@ human question
        -> otherwise UNAVAILABLE
   -> Library evidence resolver
        -> Runtime-normalized read-only evidence bundle
-       -> one bounded provenance-backed passage
-  -> Core EVIDENCE meaning
+       -> one bounded passage or bounded multi-source comparison
+  -> Core EVIDENCE / SYNTHESIS meaning
   -> velvet-language wording
 ```
 
@@ -34,28 +34,52 @@ Body grounding is attempted first. This keeps questions such as cabin temperatur
 - the `reference-only` qualifier
 - lifecycle warnings when the source is stale or superseded
 
-Language should therefore say that Velour *found* the passage rather than silently stating the passage as verified body truth.
+Language may word the evidence naturally, but the Library source remains attached separately from the display sentence.
 
-## Stable references
+## Contiguous evidence windows
 
-The first conversation integration preserves references equivalent to:
+Velour may expand a ranked search snippet into a short contiguous evidence window when it can prove the additional text comes from the same local item and canonical SHA-256. Runtime carries the window metadata through without opening the Library catalog itself.
+
+Core accepts at most three deterministic chunk identities for one evidence window. A valid window therefore preserves:
 
 ```text
 library:item:<item_id>
 library:sha256:<canonical source hash>
-library:chunk:<deterministic chunk id>
+library:chunk:<first chunk id>
+library:chunk:<next chunk id>
+...
 ```
 
-A retrieval score is never copied into truth confidence. It only determined which passage the Library returned first.
+The seed `chunk_id` must remain among the returned `chunk_ids`. Core rejects oversized, malformed, or internally inconsistent window metadata rather than quietly dropping provenance.
+
+A contiguous window receives the qualifier:
+
+```text
+evidence-window:contiguous
+```
+
+If Velour reached its configured context bound before the source context ended, Core also carries:
+
+```text
+evidence-window:truncated
+```
+
+That qualifier is disclosure, not permission to infer the missing continuation.
+
+## Retrieval score and trust
+
+A retrieval score is never copied into truth confidence. It only determined which passage the Library returned first. Window expansion likewise does not alter trust class, lifecycle state, source freshness, or truth status.
 
 ## Failure posture
 
 If the Library service is absent, unreachable, malformed, or returns no full-text passage, Core returns `UNAVAILABLE`. The shared conversation path continues running and body questions remain independent.
 
+Malformed window metadata also fails closed at the Library resolver. A larger context request can never erase the requirement for canonical item/hash/chunk provenance.
+
 ## Authority
 
 Library retrieval cannot grant Runtime, Court, executor, network, CAN, relay, shell, or physical-control authority. Action-like turns hit the existing authority fence before Library retrieval is attempted.
 
-## Future synthesis
+## Multi-source synthesis
 
-This v1 connection deliberately returns one bounded passage. A later evidence reasoning layer may compare multiple Library passages, contradictions, or local-model interpretations, but its conclusions must retain the stable evidence references and must not convert retrieval into canonical truth automatically.
+Core may compare a bounded set of distinct Library items while retaining every source reference. Agreement, conflict, or unresolved evidence remains explicit. Contiguous windowing only expands context within one item; it never stitches different sources together and never converts retrieval into canonical truth automatically.

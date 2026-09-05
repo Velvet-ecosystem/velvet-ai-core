@@ -24,6 +24,7 @@ MAX_LIBRARY_QUERY_CHARACTERS = 512
 MAX_LIBRARY_RESULTS = 20
 MAX_LIBRARY_EXCERPT_CHARACTERS = 480
 MAX_LIBRARY_SOURCE_LABEL_CHARACTERS = 160
+MAX_LIBRARY_WINDOW_CHUNKS = 3
 MAX_SYNTHESIS_PASSAGES = 3
 MAX_SYNTHESIS_EVIDENCE_CHARACTERS = 220
 
@@ -65,6 +66,9 @@ _FAMILY_TOLERANCE = {
 class LibraryEvidenceRecord:
     item_id: str
     chunk_id: Optional[str]
+    chunk_ids: Tuple[str, ...]
+    windowed: bool
+    window_truncated: bool
     title: str
     source: str
     trust_class: str
@@ -160,6 +164,17 @@ def _record_from_mapping(item: Any) -> LibraryEvidenceRecord:
     lifecycle_state = _required_text(item, "lifecycle_state")
     chunk_raw = item.get("chunk_id")
     chunk_id = None if chunk_raw is None else _required_text_value("chunk_id", chunk_raw)
+    chunk_ids = _chunk_ids_from_mapping(item, chunk_id)
+    windowed = item.get("windowed", False)
+    window_truncated = item.get("window_truncated", False)
+    if not isinstance(windowed, bool):
+        raise ValueError("library evidence windowed must be boolean")
+    if not isinstance(window_truncated, bool):
+        raise ValueError("library evidence window_truncated must be boolean")
+    if windowed and not chunk_ids:
+        raise ValueError("windowed library evidence requires chunk_ids")
+    if window_truncated and not windowed:
+        raise ValueError("truncated library evidence must be windowed")
     score_raw = item.get("score")
     if isinstance(score_raw, bool) or not isinstance(score_raw, (int, float)):
         raise ValueError("library evidence score must be numeric")
@@ -170,6 +185,9 @@ def _record_from_mapping(item: Any) -> LibraryEvidenceRecord:
     return LibraryEvidenceRecord(
         item_id=item_id,
         chunk_id=chunk_id,
+        chunk_ids=chunk_ids,
+        windowed=windowed,
+        window_truncated=window_truncated,
         title=title,
         source=source,
         trust_class=trust_class,
@@ -182,13 +200,34 @@ def _record_from_mapping(item: Any) -> LibraryEvidenceRecord:
     )
 
 
+def _chunk_ids_from_mapping(
+    item: Mapping[str, Any],
+    chunk_id: Optional[str],
+) -> Tuple[str, ...]:
+    raw = item.get("chunk_ids")
+    if raw is None:
+        return (chunk_id,) if chunk_id else ()
+    if not isinstance(raw, (list, tuple)):
+        raise ValueError("library evidence chunk_ids must be a list or tuple")
+    if len(raw) > MAX_LIBRARY_WINDOW_CHUNKS:
+        raise ValueError("library evidence chunk_ids exceed resolver bound")
+    clean = []
+    for value in raw:
+        candidate = _required_text_value("chunk_id", value)
+        if candidate not in clean:
+            clean.append(candidate)
+    if chunk_id and chunk_id not in clean:
+        raise ValueError("library evidence seed chunk must appear in chunk_ids")
+    return tuple(clean)
+
+
 def _answerable_passages(records: Sequence[LibraryEvidenceRecord]) -> Tuple[LibraryEvidenceRecord, ...]:
     passages = []
     seen_items = set()
     for record in records:
         if record.item_id in seen_items:
             continue
-        if record.chunk_id is None or record.retrieval_method == "metadata" or not record.snippet.strip():
+        if not record.chunk_ids or record.retrieval_method == "metadata" or not record.snippet.strip():
             continue
         passages.append(record)
         seen_items.add(record.item_id)
@@ -203,6 +242,10 @@ def _single_evidence(passage: LibraryEvidenceRecord) -> GroundedConversationMean
         "trust-class:%s" % passage.trust_class,
         "retrieval:%s" % passage.retrieval_method,
     ]
+    if passage.windowed:
+        qualifiers.append("evidence-window:contiguous")
+    if passage.window_truncated:
+        qualifiers.append("evidence-window:truncated")
     qualifiers.extend(_source_warning_qualifiers((passage,)))
     return GroundedConversationMeaning(
         response_kind=ConversationMeaningKind.EVIDENCE,
@@ -222,6 +265,10 @@ def _synthesize_evidence(
     labels = tuple(_bounded_source_label(passage.title) for passage in passages)
     refs = _stable_refs(passages)
     qualifiers = ["reference-only", "multi-source"]
+    if any(passage.windowed for passage in passages):
+        qualifiers.append("evidence-window:contiguous")
+    if any(passage.window_truncated for passage in passages):
+        qualifiers.append("evidence-window:truncated")
     qualifiers.extend(_source_warning_qualifiers(passages))
 
     measurements = tuple(_measurement_for_query(passage.snippet, query) for passage in passages)
@@ -422,14 +469,14 @@ def _content_tokens(text: str, query: str) -> set[str]:
 def _stable_refs(passages: Sequence[LibraryEvidenceRecord]) -> Tuple[str, ...]:
     refs = []
     for passage in passages:
-        refs.extend(
-            (
-                "library:item:%s" % passage.item_id,
-                "library:sha256:%s" % passage.sha256,
-            )
-        )
-        if passage.chunk_id:
-            refs.append("library:chunk:%s" % passage.chunk_id)
+        candidates = [
+            "library:item:%s" % passage.item_id,
+            "library:sha256:%s" % passage.sha256,
+        ]
+        candidates.extend("library:chunk:%s" % chunk_id for chunk_id in passage.chunk_ids)
+        for candidate in candidates:
+            if candidate not in refs:
+                refs.append(candidate)
     return tuple(refs)
 
 
