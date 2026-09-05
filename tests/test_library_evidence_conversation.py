@@ -76,6 +76,74 @@ def test_library_question_returns_reference_only_evidence():
     assert meaning.grants_authority is False
 
 
+def test_contiguous_window_preserves_every_touched_chunk_ref():
+    resolver = LibraryEvidenceConversationResolver(
+        lambda query, limit: evidence_document(
+            result={
+                "chunk_ids": ["chk_123", "chk_124", "chk_125"],
+                "windowed": True,
+                "window_truncated": False,
+                "snippet": (
+                    "## Core principles - Local first. - Provenance before confidence. "
+                    "- Preserve the source. - Trust is graded. - Retrieval is not belief. "
+                    "- Receipts matter. - Knowledge is modular. - Models are optional. "
+                    "- Currency is metadata, not truth."
+                ),
+            }
+        )
+    )
+
+    meaning = resolver(request("What are Velour Library's core principles?"))
+
+    assert meaning.response_kind is ConversationMeaningKind.EVIDENCE
+    assert "Currency is metadata, not truth" in meaning.value
+    assert "evidence-window:contiguous" in meaning.qualifiers
+    assert "evidence-window:truncated" not in meaning.qualifiers
+    assert meaning.source_refs == (
+        "library:item:item_manual",
+        "library:sha256:" + "a" * 64,
+        "library:chunk:chk_123",
+        "library:chunk:chk_124",
+        "library:chunk:chk_125",
+    )
+
+
+def test_truncated_window_is_disclosed_and_window_shape_is_bounded():
+    resolver = LibraryEvidenceConversationResolver(
+        lambda query, limit: evidence_document(
+            result={
+                "chunk_ids": ["chk_123", "chk_124"],
+                "windowed": True,
+                "window_truncated": True,
+            }
+        )
+    )
+    meaning = resolver(request())
+    assert "evidence-window:truncated" in meaning.qualifiers
+
+    with pytest.raises(ValueError, match="chunk_ids exceed"):
+        validate_library_evidence(
+            evidence_document(
+                result={
+                    "chunk_ids": ["chk_123", "chk_124", "chk_125", "chk_126"],
+                    "windowed": True,
+                }
+            )
+        )
+
+    with pytest.raises(ValueError, match="seed chunk"):
+        validate_library_evidence(
+            evidence_document(
+                result={"chunk_ids": ["chk_other"], "windowed": True}
+            )
+        )
+
+    with pytest.raises(ValueError, match="must be windowed"):
+        validate_library_evidence(
+            evidence_document(result={"window_truncated": True})
+        )
+
+
 def test_retrieval_score_is_not_copied_into_truth_confidence():
     resolver = LibraryEvidenceConversationResolver(
         lambda query, limit: evidence_document(result={"score": 999999.0})
