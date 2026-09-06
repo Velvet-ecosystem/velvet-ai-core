@@ -54,16 +54,23 @@ cd velvet-ai-core
 ### Install in Development Mode
 
 ```bash
-pip install -e .[dev]
+python -m pip install -e . 'pytest>=7.4,<8.4'
 ```
 
-This installs the package in editable mode with development dependencies.
+This installs the package in editable mode with the supported test runner.
+The pytest range preserves the Python 3.8 baseline.
 
 ### Run Tests
 
 ```bash
-pytest
+python -m pytest tests -q -ra
 ```
+
+Pytest is the supported complete-suite runner: it discovers both `TestCase`
+methods and module-level functions. `unittest discover` alone omits the latter.
+CI uses this runner on Python 3.8, 3.10, and 3.12 and retains the console result
+and JUnit XML on both success and failure. Promotion evidence records the
+actual runner and command; its authority assertions remain unchanged.
 
 ### Type Checking (Optional)
 
