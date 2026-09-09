@@ -285,16 +285,19 @@ velvet-ai-core/
 - offline-first operation
 - no required cloud dependency
 
-Optional development dependencies may include `pytest` and hardware-specific libraries in separate repositories.
+Tests require `pytest`; hardware-specific dependencies remain in separate repositories.
 
 ## Development
 
 Run tests with:
 
 ```bash
-pip install -e .[dev]
-pytest
+python -m pip install -e . 'pytest>=7.4,<8.4'
+python -m pytest tests -q -ra
 ```
+
+Pytest runs both unittest-style and module-level tests. CI retains executed
+results/counts and JUnit XML on Python 3.8, 3.10, and 3.12.
 
 Before submitting changes:
 
