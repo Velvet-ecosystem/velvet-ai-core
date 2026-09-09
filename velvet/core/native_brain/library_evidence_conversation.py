@@ -272,7 +272,11 @@ def _synthesize_evidence(
     qualifiers.extend(_source_warning_qualifiers(passages))
 
     measurements = tuple(_measurement_for_query(passage.snippet, query) for passage in passages)
-    if all(measurement is not None for measurement in measurements):
+    if (
+        not any(passage.window_truncated for passage in passages)
+        and _matching_measurement_context(passages)
+        and all(measurement is not None for measurement in measurements)
+    ):
         concrete = tuple(measurement for measurement in measurements if measurement is not None)
         families = {measurement.family for measurement in concrete}
         if len(families) == 1:
@@ -303,7 +307,11 @@ def _synthesize_evidence(
             )
 
     evidence_values = tuple(_bounded_synthesis_evidence(passage.snippet) for passage in passages)
-    if _minimum_content_similarity(passages, query) >= 0.45:
+    if (
+        not any(passage.window_truncated for passage in passages)
+        and _matching_passage_text(passages)
+        and _minimum_content_similarity(passages, query) >= 0.45
+    ):
         qualifiers.append("comparison:lexical-overlap")
         return GroundedConversationMeaning(
             response_kind=ConversationMeaningKind.SYNTHESIS,
@@ -328,6 +336,47 @@ def _synthesize_evidence(
         qualifiers=tuple(qualifiers),
         source_refs=refs,
     )
+
+
+def _matching_passage_text(passages: Sequence[LibraryEvidenceRecord]) -> bool:
+    # Overlap can identify related passages, but cannot establish agreement.
+    # Preserve word order, case, punctuation, negation and conditions. Only
+    # whitespace is immaterial here; paraphrases remain unresolved.
+    texts = {" ".join(passage.snippet.split()) for passage in passages}
+    return len(texts) == 1
+
+
+def _matching_measurement_context(passages: Sequence[LibraryEvidenceRecord]) -> bool:
+    contexts = []
+    for passage in passages:
+        matches = tuple(_MEASUREMENT_RE.finditer(passage.snippet))
+        # Selecting one of several quantities could compare different claims.
+        if len(matches) != 1:
+            return False
+        match = matches[0]
+        prefix = " ".join(passage.snippet[:match.start()].split())
+        suffix = " ".join(passage.snippet[match.end():].split())
+        context = prefix + " " + suffix
+        tokens = {token.casefold() for token in _WORD_RE.findall(context)}
+        if len(tokens - _STOPWORDS) < 4:
+            return False
+        # A negated value, bound, range or approximation is not an affirmative
+        # scalar. Keep the full passage for textual comparison instead. This is
+        # a conservative exclusion, not inference about the intended value.
+        if tokens & {
+            "no", "not", "never", "neither", "nor", "without", "cannot",
+            "unless", "except", "avoid", "least", "most", "minimum", "maximum",
+            "min", "max", "less", "more", "above", "below", "over", "under",
+            "between", "range", "limit", "exceed", "approximately", "about",
+            "around", "roughly", "within", "tolerance", "plus", "minus",
+        }:
+            return False
+        if re.search(r"n['’]t\b|[\d<>=±~–—−]", context, re.IGNORECASE):
+            return False
+        # Compare both sides of the quantity, rather than a bag of tokens.
+        # Subject, predicate, conditions and all remaining words must match.
+        contexts.append((prefix, suffix))
+    return bool(contexts) and all(context == contexts[0] for context in contexts[1:])
 
 
 def _measurement_for_query(text: str, query: str) -> Optional[ComparableMeasurement]:
