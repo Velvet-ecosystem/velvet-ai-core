@@ -17,7 +17,11 @@ class AuthorityContext:
 
 
 class Court:
-    """Return an allow or deny receipt without performing the action."""
+    """Return a descriptive allow/deny receipt without performing the action.
+
+    This local evaluation is useful for simulation and explanation. Its
+    Receipt cannot authorize execution; real requests belong to Runtime Court.
+    """
 
     def evaluate(self, intent: Intent, context: AuthorityContext) -> Receipt:
         try:
