@@ -8,7 +8,10 @@ from uuid import uuid4
 
 @dataclass(frozen=True)
 class Receipt:
-    """Immutable record of an authority decision or completed action."""
+    """Descriptive record, never an authenticated execution capability.
+
+    Even authorized=True cannot enable Core dispatch or replace Runtime tokens.
+    """
 
     receipt_id: str
     intent_action: str

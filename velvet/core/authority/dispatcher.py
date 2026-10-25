@@ -1,50 +1,30 @@
-"""Dispatch Court-approved intents to named handlers."""
-
-from typing import Dict
+"""Retired Core execution API; consequential dispatch belongs to Runtime."""
 
 from .handler import IntentHandler
 from .intent import Intent
 from .receipt import Receipt
 
 
-class Dispatcher:
-    """Routes only authorized receipts to registered handlers."""
+class ConsequentialDispatchRetiredError(RuntimeError):
+    """Core receipts cannot authorize registration or invocation of handlers."""
 
-    def __init__(self) -> None:
-        self._handlers: Dict[str, IntentHandler] = {}
+
+_RETIRED = (
+    "Core Dispatcher execution is retired; submit an intent through Velvet Runtime "
+    "Court, capability verification, safety, replay protection, and approved execution"
+)
+
+
+class Dispatcher:
+    """Import-compatible tombstone that never registers or invokes callbacks.
+
+    Court.evaluate remains available for descriptive/educational decisions.
+    Its Receipt is not an execution capability. No simulation flag or supplied
+    approval object can re-enable this retired execution path.
+    """
 
     def register(self, target: str, handler: IntentHandler) -> None:
-        if not target.strip():
-            raise ValueError("target must be a non-empty string")
-        self._handlers[target] = handler
+        raise ConsequentialDispatchRetiredError(_RETIRED)
 
     def dispatch(self, intent: Intent, decision: Receipt) -> Receipt:
-        if not decision.authorized:
-            return Receipt.create(
-                intent_action=intent.action,
-                actor=intent.actor,
-                target=intent.target,
-                authorized=False,
-                reason="dispatch denied: Court did not authorize intent",
-            )
-
-        handler = self._handlers.get(intent.target)
-        if handler is None:
-            return Receipt.create(
-                intent_action=intent.action,
-                actor=intent.actor,
-                target=intent.target,
-                authorized=False,
-                reason="dispatch denied: no handler registered",
-            )
-
-        outcome = handler.handle(intent)
-        return Receipt.create(
-            intent_action=intent.action,
-            actor=intent.actor,
-            target=intent.target,
-            authorized=True,
-            reason="handled after Court authorization",
-            executor=handler.name,
-            outcome=str(outcome),
-        )
+        raise ConsequentialDispatchRetiredError(_RETIRED)

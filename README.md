@@ -327,3 +327,10 @@ GNU General Public License v3.0. See [LICENSE](LICENSE).
 
 **Version**: 0.1.0  
 **Status**: Alpha, API subject to change
+
+## Consequential execution boundary
+
+Core Court receipts are descriptive decisions, not execution capabilities. Core's
+legacy `Dispatcher.register` and `Dispatcher.dispatch` fail closed; consequential
+requests use Velvet Runtime's Court and approved executor. Pure Court/Ghost
+evaluation remains available. See [authority API migration](docs/authority_boundary.md).
